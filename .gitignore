@@ -1,0 +1,6 @@
+*.vim
+*.swp
+\.*
+compile_commands.json
+cache/
+_build/
