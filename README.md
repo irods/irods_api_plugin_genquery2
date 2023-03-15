@@ -25,7 +25,6 @@ Once stable, the code will be merged into the iRODS server making it available w
 
 - Groups are not fully supported
 - Cannot resolve tickets to data objects and collections using a single query
-- Microservices are not callable from the Python Rule Engine Plugin
 - Integer values must be treated as strings, except when used for OFFSET, LIMIT, FETCH FIRST _N_ ROWS ONLY
 - Federation is not supported
 
@@ -92,23 +91,23 @@ Let the following rule exist in `/etc/irods/core.re`.
 genquery2_test_rule()
 {
     # Execute a query. The results are stored in the Rule Engine Plugin.
-    genquery2_execute(*ctx, "select COLL_NAME, DATA_NAME order by DATA_NAME desc limit 1");
+    genquery2_execute(*handle, "select COLL_NAME, DATA_NAME order by DATA_NAME desc limit 1");
 
     # Iterate over the resutls.
-    while (errorcode(genquery2_next_row(*ctx)) == 0) {
-        genquery2_column(*ctx, '0', *coll_name); # Copy the COLL_NAME into *coll_name.
-        genquery2_column(*ctx, '1', *data_name); # Copy the DATA_NAME into *data_name.
+    while (errorcode(genquery2_next_row(*handle)) == 0) {
+        genquery2_column(*handle, '0', *coll_name); # Copy the COLL_NAME into *coll_name.
+        genquery2_column(*handle, '1', *data_name); # Copy the DATA_NAME into *data_name.
         writeLine("stdout", "logical path => [*coll_name/*data_name]");
     }
 
     # Free any resources used. This is handled for you when the agent is shut down as well.
-    genquery2_destroy(*ctx);
+    genquery2_destroy(*handle);
 }
 ```
 
 We can run the rule using the following:
 ```bash
-irule -r irods_rule_engine_plugin-irods_rule_language-instance genquery2_test_rule '*ctx=%*coll_name=%*data_name=' ruleExecOut
+irule -r irods_rule_engine_plugin-irods_rule_language-instance genquery2_test_rule '*handle=%*coll_name=%*data_name=' ruleExecOut
 ```
 
 ### iCommand
@@ -299,3 +298,39 @@ NOTE: GenQuery2 column names are subject to change as the implementation is impr
 | TICKET_ALLOWED_USER_TICKET_ID | R_TICKET_ALLOWED_USERS | ticket_id |
 | TICKET_ALLOWED_GROUP_NAME | R_TICKET_ALLOWED_GROUPS | group_name |
 | TICKET_ALLOWED_GROUP_TICKET_ID | R_TICKET_ALLOWED_GROUPS | ticket_id |
+
+## Questions and Answers
+
+### Can I use the GenQuery2 microservices with the Python Rule Engine Plugin (PREP)?
+
+Yes. The important thing to remember is that the GenQuery2 microservices can update input arguments. This behavior is fully supported by the iRODS Rule Language, but not the PREP. Changes to input arguments are only visible via the object returned from the microservice.
+
+Below is an example demonstrating how to use the GenQuery2 microservices with the PREP. Pay close attention to the objects returned from each microservice call.
+
+```python
+def list_all_data_objects(rule_args, callback, rei):
+    # Notice the first input argument. In the iRODS Rule Language, the microservice
+    # would write the handle to it. Here, it is only a placeholder.
+    result = callback.genquery2_execute('', 'select COLL_NAME, DATA_NAME')
+
+    # We can retrieve the handle by reading the "arguments" list like so. The
+    # "arguments" list is zero-indexed and each index maps to an argument in the call
+    # previously made.
+    handle = result['arguments'][0]
+
+    while True:
+        try:
+            callback.genquery2_next_row(handle)
+        except:
+            break
+
+        result = callback.genquery2_column(handle, '0', '')
+        coll_name = result['arguments'][2]
+
+        result = callback.genquery2_column(handle, '1', '')
+        data_name = result['arguments'][2]
+
+        callback.writeLine('stdout', 'logical path => [{}/{}]'.format(coll_name, data_name))
+                                                                                            
+    callback.genquery2_destroy(handle)
+```
