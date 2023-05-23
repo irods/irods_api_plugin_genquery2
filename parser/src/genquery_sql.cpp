@@ -1072,6 +1072,9 @@ namespace irods::experimental::api::genquery
             if (!_select.range.number_of_rows.empty()) {
                 sql += fmt::format(" fetch first {} rows only", _select.range.number_of_rows);
             }
+            else {
+                sql += fmt::format(" fetch first {} rows only", _opts.default_number_of_rows);
+            }
 
             std::for_each(std::begin(state.values), std::end(state.values), [](auto&& _j) {
                 log_gq::debug("BINDABLE VALUE => {}", _j);

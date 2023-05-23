@@ -79,6 +79,7 @@ namespace
                     gq::options opts;
                     opts.username = _comm->clientUser.userName; // TODO Handle remote users?
                     opts.admin_mode = irods::is_privileged_client(*_comm);
+                    //opts.default_number_of_rows = 8; // TODO Can be pulled from the catalog on server startup.
                     const auto [sql, values] = gq::to_sql(ast, opts);
 
                     log_api::info("Returning to client: [{}]", sql);
