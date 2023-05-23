@@ -7,6 +7,7 @@
 #include <irods/irods_logger.hpp>
 #include <irods/irods_rs_comm_query.hpp>
 //#include <irods/irods_re_serialization.hpp> // For custom data types that can be used in the NREP.
+#include <irods/irods_server_properties.hpp>
 #include <irods/procApiRequest.h>
 #include <irods/rodsErrorTable.h>
 
@@ -74,12 +75,23 @@ namespace
 		}
 
                 try {
-                    const auto ast = gq::wrapper::parse(_msg);
+                    using json = nlohmann::json;
 
                     gq::options opts;
+
+                    {
+                        // Get the database type string from server_config.json.
+                        const auto handle = irods::server_properties::instance().map();
+                        const auto& config = handle.get_json();
+                        const auto& db = config.at(json::json_pointer{"/plugin_configuration/database"});
+                        opts.database = std::begin(db).key();
+                    }
+
                     opts.username = _comm->clientUser.userName; // TODO Handle remote users?
                     opts.admin_mode = irods::is_privileged_client(*_comm);
                     //opts.default_number_of_rows = 8; // TODO Can be pulled from the catalog on server startup.
+
+                    const auto ast = gq::wrapper::parse(_msg);
                     const auto [sql, values] = gq::to_sql(ast, opts);
 
                     log_api::info("Returning to client: [{}]", sql);
@@ -97,8 +109,6 @@ namespace
                     for (std::vector<std::string>::size_type i = 0; i < values.size(); ++i) {
                         stmt.bind(static_cast<short>(i), values.at(i).c_str());
                     }
-
-                    using json = nlohmann::json;
 
                     auto json_array = json::array();
                     auto json_row = json::array();

@@ -194,70 +194,6 @@ namespace
         {"{}.user_id = {}.user_id"},
     }); // table_joins
 
-    // The following SQL is a recursive WITH clause which produces all resource hierarchies
-    // in the database upon request.
-    //
-    // The following query will produce a resource hierarchy starting from a leaf resource ID.
-    // Keep in mind that the ::<type> syntax may be specific to PostgreSQL. Remember to check the
-    // other database systems for compatibility.
-    // 
-    //     with recursive T as (
-    //         select
-    //             resc_id,
-    //             resc_name hier,
-    //             case
-    //                 when resc_parent = '' then 0
-    //                 else resc_parent::bigint
-    //             end parent_id
-    //         from
-    //             r_resc_main
-    //         where
-    //             resc_id > 0     -- Or, resc_id = <child_resc_id>
-    // 
-    //         union all
-    // 
-    //         select
-    //             T.resc_id,
-    //             (U.resc_name || ';' || T.hier)::varchar(250),
-    //             case
-    //                 when U.resc_parent = '' then 0
-    //                 else U.resc_parent::bigint
-    //             end parent_id
-    //         from T
-    //         inner join r_resc_main U on U.resc_id = T.parent_id
-    //     )
-    //     select resc_id, hier from T where parent_id = 0 and resc_id = <resc_id>;
-    // 
-    // Q. Can this be used with other queries?
-    // A. Yes! CTEs can be joined just like any other table.
-    // 
-    // Q. What tables need to be joined in order to support this?
-    // A. R_RESC_MAIN is the only table that is needed.
-    constexpr const char* data_resc_hier_with_clause =
-        "with recursive T as ("
-            "select "
-                "resc_id, "
-                "resc_name hier, "
-                "case "
-                    "when resc_parent = '' then 0 "
-                    "else cast(resc_parent as bigint) " // TODO Is bigint supported in all databases?
-                "end parent_id "
-            "from "
-                "r_resc_main "
-            "where "
-                "resc_id > 0 "
-            "union all "
-            "select "
-                "T.resc_id, "
-                "cast((U.resc_name || ';' || T.hier) as varchar(250)), "
-                "case "
-                    "when U.resc_parent = '' then 0 "
-                    "else cast(U.resc_parent as bigint) "
-                "end parent_id "
-            "from T "
-            "inner join r_resc_main U on U.resc_id = T.parent_id"
-        ") ";
-
     auto generate_table_alias(gq_state& _state) -> std::string
     {
         return fmt::format("t{}", _state.table_alias_id++);
@@ -599,7 +535,7 @@ namespace
             else if (se.column.starts_with("META_C")) { alias = "mmc"; }
             else if (se.column.starts_with("META_R")) { alias = "mmr"; }
             else if (se.column.starts_with("META_U")) { alias = "mmu"; }
-            else if (se.column == "DATA_RESC_HIER")   { alias = "T"; }
+            else if (se.column == "DATA_RESC_HIER")   { alias = "cte_drh"; }
             else                                      { is_special_column = false; }
             // clang-format on
 
@@ -634,6 +570,94 @@ namespace
         // All columns in the order by clause must exist in the list of columns to project.
         return fmt::format(" order by {}", fmt::join(sort_expr, ", "));
     } // generate_order_by_clause
+
+    auto generate_with_clause_for_data_resc_hier(const gq_state& _state,
+                                                 const std::string_view _database) -> std::string
+    {
+        if (!_state.add_sql_for_data_resc_hier) {
+            return "";
+        }
+
+        // The following SQL is a recursive WITH clause which produces all resource hierarchies
+        // in the database upon request.
+        //
+        // The following query will produce a resource hierarchy starting from a leaf resource ID.
+        // Keep in mind that the ::<type> syntax may be specific to PostgreSQL. Remember to check the
+        // other database systems for compatibility.
+        // 
+        //     with recursive T as (
+        //         select
+        //             resc_id,
+        //             resc_name hier,
+        //             case
+        //                 when resc_parent = '' then 0
+        //                 else resc_parent::bigint
+        //             end parent_id
+        //         from
+        //             r_resc_main
+        //         where
+        //             resc_id > 0     -- Or, resc_id = <child_resc_id>
+        // 
+        //         union all
+        // 
+        //         select
+        //             T.resc_id,
+        //             (U.resc_name || ';' || T.hier)::varchar(250),
+        //             case
+        //                 when U.resc_parent = '' then 0
+        //                 else U.resc_parent::bigint
+        //             end parent_id
+        //         from T
+        //         inner join r_resc_main U on U.resc_id = T.parent_id
+        //     )
+        //     select resc_id, hier from T where parent_id = 0 and resc_id = <resc_id>;
+        // 
+        // Q. Can this be used with other queries?
+        // A. Yes! CTEs can be joined just like any other table.
+        // 
+        // Q. What tables need to be joined in order to support this?
+        // A. R_RESC_MAIN is the only table that is needed.
+        constexpr const char* data_resc_hier_with_clause =
+            "with recursive cte_drh as ("
+                "select "
+                    "resc_id, "
+                    "resc_name hier, "
+                    "case "
+                        "when resc_parent = '' then 0 "
+                        "else cast(resc_parent as {}) "
+                    "end parent_id "
+                "from "
+                    "r_resc_main "
+                "where "
+                    "resc_id > 0 "
+                "union all "
+                "select "
+                    "cte_drh.resc_id, "
+                    "cast((U.resc_name || ';' || cte_drh.hier) as varchar(250)), "
+                    "case "
+                        "when U.resc_parent = '' then 0 "
+                        "else cast(U.resc_parent as bigint) "
+                    "end parent_id "
+                "from cte_drh "
+                "inner join r_resc_main U on U.resc_id = cte_drh.parent_id"
+            ") ";
+
+        // See https://modern-sql.com/caniuse/cast_as_bigint to understand why the data types
+        // for MySQL and Oracle were chosen.
+
+        if (_database == "mysql") {
+            return fmt::format(data_resc_hier_with_clause, "signed");
+        }
+
+        if (_database == "oracle") {
+            return fmt::format(data_resc_hier_with_clause, "integer");
+        }
+
+        // Assume the database supports the BIGINT data type.
+        // This is the preferred data type, is fully supported by PostgreSQL, and
+        // is defined in ISO/IEC 9075:2016-2.
+        return fmt::format(data_resc_hier_with_clause, "bigint");
+    } // generate_with_clause_for_data_resc_hier
 } // anonymous namespace
 
 namespace irods::experimental::api::genquery
@@ -704,7 +728,7 @@ namespace irods::experimental::api::genquery
         }
         else if (_column.name == "DATA_RESC_HIER") {
             add_r_resc_main = _state.add_sql_for_data_resc_hier = true;
-            table_alias = "T";
+            table_alias = "cte_drh";
         }
         else {
             is_special_column = false;
@@ -1020,7 +1044,7 @@ namespace irods::experimental::api::genquery
             // The tables stored in sql_tables must be directly joinable to at least one other table in
             // the sql_tables list. This step is NOT allowed to introduce intermediate tables.
             auto select_clause = fmt::format("{with_clause}select {distinct}{columns} from {table} {alias}",
-                                             fmt::arg("with_clause", state.add_sql_for_data_resc_hier ? data_resc_hier_with_clause : ""),
+                                             fmt::arg("with_clause", generate_with_clause_for_data_resc_hier(state, _opts.database)),
                                              fmt::arg("distinct", _select.distinct ? "distinct " : ""),
                                              ///////////////////
                                              // TODO The next two lines produce the same result and the "state.columns_for_*" members
@@ -1059,7 +1083,7 @@ namespace irods::experimental::api::genquery
             sql += generate_joins_for_metadata_columns(state);
 
             if (state.add_sql_for_data_resc_hier) {
-                sql += fmt::format(" inner join T on T.resc_id = {}.resc_id", state.table_aliases.at("R_RESC_MAIN"));
+                sql += fmt::format(" inner join cte_drh on cte_drh.resc_id = {}.resc_id", state.table_aliases.at("R_RESC_MAIN"));
             }
 
             sql += generate_condition_clause(state, _opts, conds);
