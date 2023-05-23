@@ -10,9 +10,10 @@
 
 // Forward declarations.
 struct RsComm;
+struct genquery2_input;
 
 // The function signature of the API plugin.
-using operation_type = std::function<int(RsComm*, const char*, char**)>;
+using operation_type = std::function<int(RsComm*, const genquery2_input*, char**)>;
 
 // Defined differently based on whether the client module or server module
 // is being compiled. DO NOT CHANGE THESE DECLARATIONS!
