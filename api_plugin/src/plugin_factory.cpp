@@ -29,17 +29,25 @@ extern "C" auto plugin_factory(
 		const_cast<char*>(RODS_API_VERSION),
 		NO_USER_AUTH,
 		NO_USER_AUTH,
-		"STR_PI",
+		"GenQuery2_Input_PI",
 		0,
 		"STR_PI",
 		0,
 		op,
 		"api_genquery2",
 #ifdef IRODS_ENABLE_430_COMPATIBILITY
-		irods::clearInStruct_noop,
+		[](void* _p) {
+                    auto* q = static_cast<genquery2_input*>(_p);
+                    if (q->query_string) { std::free(q->query_string); }
+                    if (q->zone)         { std::free(q->zone); }
+                },
 #else
-		irods::clearInStruct_noop,
-		irods::clearOutStruct_noop, // TODO This blocks support for 4.2.
+		[](void* _p) {
+                    auto* q = static_cast<genquery2_input*>(_p);
+                    if (q->query_string) { std::free(q->query_string); }
+                    if (q->zone)         { std::free(q->zone); }
+                },
+                irods::clearOutStruct_noop, // TODO This blocks support for 4.2.
 #endif // IRODS_ENABLE_430_COMPATIBILITY
 		fn_ptr
 	};
@@ -49,8 +57,8 @@ extern "C" auto plugin_factory(
 
 	// TODO Demonstrate how to add new serialization types.
 
-	api->in_pack_key = "STR_PI";
-	api->in_pack_value = STR_PI;
+	api->in_pack_key = "GenQuery2_Input_PI";
+	api->in_pack_value = GenQuery2_Input_PI;
 
 	api->out_pack_key = "STR_PI";
 	api->out_pack_value = STR_PI;

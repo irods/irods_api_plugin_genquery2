@@ -8,13 +8,9 @@ static const int IRODS_APN_GENQUERY2 = 1'000'001;
 typedef struct genquery2_input
 {
     char* query_string;
-    int length;
+    char* zone;
 } genquery2_input_t;
 
-typedef struct genquery2_output
-{
-    char* query_string;
-    int length;
-} genquery2_output_t;
+#define GenQuery2_Input_PI "str *query_string; str *zone;"
 
 #endif // IRODS_API_PLUGIN_GENQUERY2_COMMON_H
