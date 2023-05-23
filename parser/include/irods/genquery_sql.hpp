@@ -11,8 +11,9 @@ namespace irods::experimental::api::genquery
     struct options
     {
         std::string_view username;
-        bool admin_mode = false;
+        std::string_view database;
         std::uint16_t default_number_of_rows = 16;
+        bool admin_mode = false;
     }; // struct options
 
     auto to_sql(const select& _select, const options& _opts) -> std::tuple<std::string, std::vector<std::string>>;
