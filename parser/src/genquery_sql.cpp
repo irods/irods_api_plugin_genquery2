@@ -665,6 +665,24 @@ namespace
                            fmt::arg("int_type", "bigint"),
                            fmt::arg("char_type", "varchar"));
     } // generate_with_clause_for_data_resc_hier
+
+    auto generate_limit_clause(const irods::experimental::api::genquery::options& _opts,
+                               const std::string_view _number_of_rows) -> std::string
+    {
+        if (!_number_of_rows.empty()) {
+            if (_opts.database == "mysql") {
+                return fmt::format(" limit {}", _number_of_rows);
+            }
+            
+            return fmt::format(" fetch first {} rows only", _number_of_rows);
+        }
+
+        if (_opts.database == "mysql") {
+            return fmt::format(" limit {}", _opts.default_number_of_rows);
+        }
+
+        return fmt::format(" fetch first {} rows only", _opts.default_number_of_rows);
+    } // generate_limit_clause
 } // anonymous namespace
 
 namespace irods::experimental::api::genquery
@@ -1095,16 +1113,14 @@ namespace irods::experimental::api::genquery
 
             sql += generate_condition_clause(state, _opts, conds);
             sql += generate_order_by_clause(state, _select.order_by, column_name_mappings);
+            sql += generate_limit_clause(_opts, _select.range.number_of_rows);
 
+            // MySQL requires that the OFFSET clause be defined after the LIMIT clause, therefore we
+            // handle OFFSET here.
+            //
+            // See https://dev.mysql.com/doc/refman/8.0/en/select.html.
             if (!_select.range.offset.empty()) {
                 sql += fmt::format(" offset {}", _select.range.offset);
-            }
-
-            if (!_select.range.number_of_rows.empty()) {
-                sql += fmt::format(" fetch first {} rows only", _select.range.number_of_rows);
-            }
-            else {
-                sql += fmt::format(" fetch first {} rows only", _opts.default_number_of_rows);
             }
 
             std::for_each(std::begin(state.values), std::end(state.values), [](auto&& _j) {
