@@ -618,45 +618,52 @@ namespace
         // Q. What tables need to be joined in order to support this?
         // A. R_RESC_MAIN is the only table that is needed.
         constexpr const char* data_resc_hier_with_clause =
-            "with recursive cte_drh as ("
+            "with{recursive_op} cte_drh as ("
                 "select "
                     "resc_id, "
                     "resc_name hier, "
                     "case "
                         "when resc_parent = '' then 0 "
-                        "else cast(resc_parent as {}) "
+                        "else cast(resc_parent as {int_type}) "
                     "end parent_id "
-                "from "
-                    "r_resc_main "
-                "where "
-                    "resc_id > 0 "
+                "from R_RESC_MAIN "
+                "where resc_id > 0 "
                 "union all "
                 "select "
                     "cte_drh.resc_id, "
-                    "cast((U.resc_name || ';' || cte_drh.hier) as varchar(250)), "
+                    "cast(concat(concat(U.resc_name, ';'), cte_drh.hier) as {char_type}(250)), "
                     "case "
                         "when U.resc_parent = '' then 0 "
-                        "else cast(U.resc_parent as bigint) "
+                        "else cast(U.resc_parent as {int_type}) "
                     "end parent_id "
                 "from cte_drh "
-                "inner join r_resc_main U on U.resc_id = cte_drh.parent_id"
+                "inner join R_RESC_MAIN U on U.resc_id = cte_drh.parent_id"
             ") ";
 
         // See https://modern-sql.com/caniuse/cast_as_bigint to understand why the data types
         // for MySQL and Oracle were chosen.
 
         if (_database == "mysql") {
-            return fmt::format(data_resc_hier_with_clause, "signed");
+            return fmt::format(data_resc_hier_with_clause,
+                               fmt::arg("recursive_op", " recursive"),
+                               fmt::arg("int_type", "signed"),
+                               fmt::arg("char_type", "char"));
         }
 
         if (_database == "oracle") {
-            return fmt::format(data_resc_hier_with_clause, "integer");
+            return fmt::format(data_resc_hier_with_clause,
+                               fmt::arg("recursive_op", ""),
+                               fmt::arg("int_type", "integer"),
+                               fmt::arg("char_type", "varchar"));
         }
 
         // Assume the database supports the BIGINT data type.
         // This is the preferred data type, is fully supported by PostgreSQL, and
         // is defined in ISO/IEC 9075:2016-2.
-        return fmt::format(data_resc_hier_with_clause, "bigint");
+        return fmt::format(data_resc_hier_with_clause,
+                           fmt::arg("recursive_op", " recursive"),
+                           fmt::arg("int_type", "bigint"),
+                           fmt::arg("char_type", "varchar"));
     } // generate_with_clause_for_data_resc_hier
 } // anonymous namespace
 
