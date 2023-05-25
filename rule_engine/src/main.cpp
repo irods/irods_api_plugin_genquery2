@@ -1,6 +1,7 @@
 #include "irods/irods_server_api_call.hpp"
 #include "irods/plugins/api/genquery2_common.h"
 
+#include <irods/irods_at_scope_exit.hpp>
 #include <irods/irods_logger.hpp>
 #include <irods/irods_plugin_context.hpp>
 #include <irods/irods_re_plugin.hpp>
@@ -14,6 +15,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <iterator>
 #include <list>
@@ -63,9 +65,14 @@ namespace
             auto& rei = get_rei(_effect_handler);
             auto iter = std::begin(_rule_arguments);
             auto* query = boost::any_cast<std::string*>(*std::next(iter));
+
+            genquery2_input input{};
+            input.query_string = strdup(query->c_str());
+            irods::at_scope_exit free_input_struct{[&input] { std::free(input.query_string); }};
+
             char* results{};
 
-            if (const auto ec = irods::server_api_call(IRODS_APN_GENQUERY2, rei.rsComm, query->c_str(), &results); ec != 0) {
+            if (const auto ec = irods::server_api_call(IRODS_APN_GENQUERY2, rei.rsComm, &input, &results); ec != 0) {
                 const auto msg = fmt::format("Error while executing GenQuery 2 query [error_code=[{}]].", ec);
                 log_rule_engine::error(msg);
                 return ERROR(ec, msg);
