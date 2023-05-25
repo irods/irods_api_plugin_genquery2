@@ -9,8 +9,9 @@ typedef struct genquery2_input
 {
     char* query_string;
     char* zone;
+    int sql_only;
 } genquery2_input_t;
 
-#define GenQuery2_Input_PI "str *query_string; str *zone;"
+#define GenQuery2_Input_PI "str *query_string; str *zone; int sql_only;"
 
 #endif // IRODS_API_PLUGIN_GENQUERY2_COMMON_H
