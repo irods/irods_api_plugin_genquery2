@@ -111,6 +111,11 @@ namespace
 
                     log_api::info("Returning to client: [{}]", sql);
 
+                    if (1 == _input->sql_only) {
+                        *_output = strdup(sql.c_str());
+                        return 0;
+                    }
+
                     if (sql.empty()) {
                         log_api::error("Could not generate SQL from GenQuery.");
                         return SYS_INVALID_INPUT_PARAM;

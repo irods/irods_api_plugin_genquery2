@@ -13,7 +13,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 {
 	if (_argc != 2 && _argc != 3) {
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		fmt::print("usage: {} [ZONE] QUERY_STRING\n", _argv[0]);
+		fmt::print("usage: {} [ZONE|sql-only] QUERY_STRING\n", _argv[0]);
 		return 1;
 	}
 
@@ -28,7 +28,13 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
                     input.query_string = _argv[1];
                 }
                 else if (_argc == 3) {
-                    input.zone = _argv[1];
+                    if (std::strcmp("sql-only", _argv[1]) == 0) {
+                        input.sql_only = 1;
+                    }
+                    else {
+                        input.zone = _argv[1];
+                    }
+
                     input.query_string = _argv[2];
                 }
 
@@ -47,7 +53,10 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
                     return 1;
                 }
 
-                fmt::print(fmt::runtime(sql));
+                (1 == input.sql_only)
+                    ? fmt::print("{}\n", sql)
+                    : fmt::print(fmt::runtime(sql));
+
                 std::free(sql);
 
 		return 0;
