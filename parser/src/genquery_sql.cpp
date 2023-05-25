@@ -165,33 +165,33 @@ namespace
     }); // table_edges
 
     constexpr auto table_joins = std::to_array<irods::experimental::genquery::edge_property>({
-        {"{}.coll_id = {}.coll_id"},
-        {"{}.coll_id = {}.object_id"},
-        {"{}.coll_id = {}.object_id"},
-        {"{}.coll_id = {}.object_id"},
+        {"{}.coll_id = {}.coll_id", 0},
+        {"{}.coll_id = {}.object_id", 1},
+        {"{}.coll_id = {}.object_id", 2},
+        {"{}.coll_id = {}.object_id", 3},
 
-        {"{}.data_id = {}.object_id"},
-        {"{}.data_id = {}.object_id"},
-        {"{}.resc_id = {}.resc_id"},
-        {"{}.data_id = {}.object_id"},
+        {"{}.data_id = {}.object_id", 4},
+        {"{}.data_id = {}.object_id", 5},
+        {"{}.resc_id = {}.resc_id", 6},
+        {"{}.data_id = {}.object_id", 7},
 
-        {"{}.meta_id = {}.meta_id"},
+        {"{}.meta_id = {}.meta_id", 8},
 
-        {"{}.access_type_id = {}.token_id"},
+        {"{}.access_type_id = {}.token_id", 9},
 
-        {"{}.object_id = {}.resc_id"},
-        {"{}.object_id = {}.user_id"},
+        {"{}.object_id = {}.resc_id", 10},
+        {"{}.object_id = {}.user_id", 11},
 
-        {"{}.user_id = {}.user_id"},
+        {"{}.user_id = {}.user_id", 13},
 
-        {"{}.ticket_id = {}.ticket_id"},
-        {"{}.ticket_id = {}.ticket_id"},
-        {"{}.ticket_id = {}.ticket_id"},
+        {"{}.ticket_id = {}.ticket_id", 14},
+        {"{}.ticket_id = {}.ticket_id", 15},
+        {"{}.ticket_id = {}.ticket_id", 16},
 
-        {"{}.user_id = {}.user_id"},
-        {"{}.user_id = {}.group_user_id"},
-        {"{}.user_id = {}.user_id"},
-        {"{}.user_id = {}.user_id"},
+        {"{}.user_id = {}.user_id", 17},
+        {"{}.user_id = {}.group_user_id", 18},
+        {"{}.user_id = {}.user_id", 18},
+        {"{}.user_id = {}.user_id", 19},
     }); // table_joins
 
     auto generate_table_alias(gq_state& _state) -> std::string
@@ -245,24 +245,26 @@ namespace
                               const std::vector<std::string_view>& _tables,
                               const std::map<std::string, std::string>& _table_aliases) -> std::vector<std::string>
     {
-        // TODO This logic assumes ALL tables that can be joined are ones that share the same column name.
-        // For example, R_DATA_MAIN.coll_id and R_COLL_MAIN.coll_id. This requirement fails for tables such as
-        // R_USER_MAIN and R_USER_GROUP (which is expected). We need to make the join logic a little smarter
-        // for cases such as those. Remember, we have the joins captured in the graph.
-
         const auto get_table_join = [&_graph, &_table_aliases](const auto& _t1, const auto& _t2) -> std::string
         {
-            const auto t1_idx = to_index(_t1);
-            const auto t2_idx = to_index(_t2);
+            auto t1_idx = to_index(_t1);
+            auto t2_idx = to_index(_t2);
             const auto [edge, exists] = boost::edge(t1_idx, t2_idx, _graph);
 
             if (!exists) {
                 return {};
             }
 
-            const auto t1_alias = _table_aliases.at(std::string{_t1});
-            const auto t2_alias = _table_aliases.at(std::string{_t2});
+            std::string_view t2_alias = _table_aliases.at(std::string{_t2});
             const auto sql = fmt::format("inner join {} {} on {}", _t2, t2_alias, _graph[edge].join_condition);
+
+            // It is likely that the order of the tables passed do NOT match the order of the join expression.
+            // To resolve this, each edge property contains its position in the table_edges array. This is used
+            // to lookup the edge definition in table_edges. This allows the parser to reorder the tables to
+            // satisfy the table join expression.
+            const auto& edge_def = table_edges[_graph[edge].position];
+            auto& t1_alias = _table_aliases.at(table_names[edge_def.first]);
+            t2_alias = _table_aliases.at(table_names[edge_def.second]);
 
             return fmt::format(fmt::runtime(sql), t1_alias, t2_alias);
         };

@@ -8,6 +8,7 @@ namespace irods::experimental::genquery
     struct edge_property
     {
         std::string_view join_condition;
+        std::uint8_t position;
     }; // struct edge_property
 } // namespace irods::experimental::genquery
 
