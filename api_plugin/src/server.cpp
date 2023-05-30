@@ -69,6 +69,18 @@ namespace
                     return ec;
                 }
 
+                // Return an error if the host information does not point to the zone of interest.
+                // getAndConnRcatHost() returns the local zone if the target zone does not exist. We must catch
+                // this situation to avoid querying the wrong catalog.
+                if (host_info && _input->zone) {
+                    const std::string_view resolved_zone = static_cast<zoneInfo*>(host_info->zoneInfo)->zoneName;
+
+                    if (resolved_zone != _input->zone) {
+                        log_api::error("Could not find zone [{}].", _input->zone);
+                        return SYS_INVALID_ZONE_NAME;
+                    }
+                }
+
                 if (host_info->localFlag != LOCAL_HOST) {
                     log_api::trace("Redirecting request to remote zone [{}].", _input->zone);
 
