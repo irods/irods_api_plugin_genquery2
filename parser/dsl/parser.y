@@ -95,6 +95,7 @@ rules only.
 
 %type<gq::selections> selections;
 %type<gq::conditions> conditions;
+%type<gq::group_by> group_by;
 %type<gq::order_by> order_by;
 %type<std::vector<gq::sort_expression>> sort_expr;
 %type<gq::range> range;
@@ -111,17 +112,21 @@ rules only.
 %%
 
 genquery:
-    select
-  | select order_by  { std::swap(wrapper.select_.order_by, $2); }
-  | select range  { std::swap(wrapper.select_.range, $2); }
-  | select order_by range  { std::swap(wrapper.select_.order_by, $2); std::swap(wrapper.select_.range, $3); }
-  | select range order_by  { std::swap(wrapper.select_.order_by, $3); std::swap(wrapper.select_.range, $2); }
+    select group_by  { std::swap(wrapper.select_.group_by, $2); }
+  | select group_by order_by  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $3); }
+  | select group_by range  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.range, $3); }
+  | select group_by order_by range  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $3); std::swap(wrapper.select_.range, $4); }
+  | select group_by range order_by  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $4); std::swap(wrapper.select_.range, $3); }
 
 select:
     SELECT selections  { std::swap(wrapper.select_.selections, $2); }
   | SELECT selections WHERE conditions  { std::swap(wrapper.select_.selections, $2); std::swap(wrapper.select_.conditions, $4); }
   | SELECT NO DISTINCT selections  { wrapper.select_.distinct = false; std::swap(wrapper.select_.selections, $4); }
   | SELECT NO DISTINCT selections WHERE conditions  { wrapper.select_.distinct = false; std::swap(wrapper.select_.selections, $4); std::swap(wrapper.select_.conditions, $6); }
+
+group_by:
+    %empty
+  | GROUP BY list_of_identifiers { std::swap($$.columns, $3); }
 
 order_by:
     ORDER BY sort_expr  { std::swap($$.sort_expressions, $3); }
