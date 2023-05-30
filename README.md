@@ -127,9 +127,9 @@ iquery <query_string>
 
 The command returns a JSON string on success.
 
-If there's an error, it is printed to the terminal as is. Error information is NOT guaranteed to returned as a JSON string.
+If there's an error, it is printed to the terminal as is. Error information is NOT guaranteed to return as a JSON string.
 
-See help text for additional information.
+See the help text for additional options and information.
 ```bash
 iquery -h
 ```
@@ -152,10 +152,10 @@ iquery "select COLL_NAME, DATA_NAME where DATA_RESC_HIER in ('demoResc', 'pt;rep
 iquery "select COLL_NAME, DATA_NAME, RESC_NAME where META_COLL_ATTR_NAME = 'a1' and (META_DATA_ATTR_NAME = 'a2' or META_RESC_ATTR_VALUE not like 'v1%')"
 
 # List all data objects and collections the user has access to in "otherZone".
-iquery otherZone "select COLL_NAME, DATA_NAME"
+iquery -z otherZone "select COLL_NAME, DATA_NAME"
 
 # Show the SQL that would be executed. The "pg_format" SQL formatter is only used for demonstration purposes.
-iquery sql-only "select COLL_NAME, DATA_NAME where RESC_NAME = 'demoResc'" | pg_format -
+iquery --sql-only "select COLL_NAME, DATA_NAME where RESC_NAME = 'demoResc'" | pg_format -
 SELECT DISTINCT
     t0.coll_name,
     t1.data_name
