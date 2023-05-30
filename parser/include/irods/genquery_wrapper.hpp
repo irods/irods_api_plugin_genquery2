@@ -10,27 +10,27 @@
 
 namespace irods::experimental::api::genquery
 {
-    class wrapper
-    {
-    public:
-        explicit wrapper(std::istream* _is_ptr);
+	class wrapper
+	{
+	  public:
+		explicit wrapper(std::istream* _is_ptr);
 
-        static auto parse(std::istream& _is) -> select;
-        static auto parse(const char* _s) -> select;
-        static auto parse(const std::string& _s) -> select;
+		static auto parse(std::istream& _is) -> select;
+		static auto parse(const char* _s) -> select;
+		static auto parse(const std::string& _s) -> select;
 
-        friend class parser;
-        friend class scanner;
+		friend class parser;
+		friend class scanner;
 
-    private:
-        auto increment_location(std::uint64_t _count) -> void;
-        auto location() const -> std::uint64_t;
+	  private:
+		auto increment_location(std::uint64_t _count) -> void;
+		auto location() const -> std::uint64_t;
 
-        scanner scanner_;
-        parser parser_;
-        select select_;
-        std::uint64_t location_;
-    };
+		scanner scanner_;
+		parser parser_;
+		select select_;
+		std::uint64_t location_;
+	};
 } // namespace irods::experimental::api::genquery
 
 #endif // IRODS_GENQUERY_WRAPPER_HPP

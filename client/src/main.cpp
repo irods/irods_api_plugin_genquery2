@@ -3,7 +3,7 @@
 #include <irods/client_connection.hpp>
 #include <irods/irods_exception.hpp>
 #include <irods/procApiRequest.h>
-#include <irods/rcMisc.h> // For set_ips_display_name()
+#include <irods/rcMisc.h>     // For set_ips_display_name()
 #include <irods/rodsClient.h> // For load_client_api_plugins()
 
 #include <boost/program_options.hpp>
@@ -15,73 +15,74 @@ auto print_usage_info() -> void;
 
 int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 {
-    set_ips_display_name("iquery (experimental)");
+	set_ips_display_name("iquery (experimental)");
 
-    namespace po = boost::program_options;
+	namespace po = boost::program_options;
 
-    po::options_description desc{""};
-    desc.add_options()
-        ("query_string", po::value<std::string>(), "")
-        ("sql-only", po::bool_switch(), "")
-        ("zone,z", po::value<std::string>(), "")
-        ("help,h", "");
+	po::options_description desc{""};
 
-    po::positional_options_description pod;
-    pod.add("query_string", 1);
+	// clang-format off
+	desc.add_options()
+		("query_string", po::value<std::string>(), "")
+		("sql-only", po::bool_switch(), "")
+		("zone,z", po::value<std::string>(), "")
+		("help,h", "");
+	// clang-format on
+
+	po::positional_options_description pod;
+	pod.add("query_string", 1);
 
 	load_client_api_plugins();
 
 	try {
-            po::variables_map vm;
-            po::store(po::command_line_parser(_argc, _argv).options(desc).positional(pod).run(), vm);
-            po::notify(vm);
+		po::variables_map vm;
+		po::store(po::command_line_parser(_argc, _argv).options(desc).positional(pod).run(), vm);
+		po::notify(vm);
 
-            if (vm.count("help")) {
-                print_usage_info();
-                return 0;
-            }
+		if (vm.count("help")) {
+			print_usage_info();
+			return 0;
+		}
 
-                genquery2_input input{};
+		genquery2_input input{};
 
-                if (vm.count("query_string") == 0) {
-                    fmt::print(stderr, "error: Missing QUERY_STRING\n");
-                    return 1;
-                }
+		if (vm.count("query_string") == 0) {
+			fmt::print(stderr, "error: Missing QUERY_STRING\n");
+			return 1;
+		}
 
-                auto query_string = vm["query_string"].as<std::string>();
-                input.query_string = query_string.data();
+		auto query_string = vm["query_string"].as<std::string>();
+		input.query_string = query_string.data();
 
-                std::string zone;
-                if (vm.count("zone")) {
-                    zone = vm["zone"].as<std::string>();
-                    input.zone = zone.data();
-                }
+		std::string zone;
+		if (vm.count("zone")) {
+			zone = vm["zone"].as<std::string>();
+			input.zone = zone.data();
+		}
 
-                if (vm["sql-only"].as<bool>()) {
-                    input.sql_only = 1;
-                }
+		if (vm["sql-only"].as<bool>()) {
+			input.sql_only = 1;
+		}
 
 		irods::experimental::client_connection conn;
-                char* sql{};
+		char* sql{};
 
-                const auto ec = procApiRequest(
-                        static_cast<RcComm*>(conn),
-                        IRODS_APN_GENQUERY2,
-                        &input,
-                        nullptr,
-                        reinterpret_cast<void**>(&sql), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                        nullptr);
+		const auto ec =
+			procApiRequest(static_cast<RcComm*>(conn),
+		                   IRODS_APN_GENQUERY2,
+		                   &input,
+		                   nullptr,
+		                   reinterpret_cast<void**>(&sql), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+		                   nullptr);
 
-                if (ec != 0) {
-                    fmt::print(stderr, "error: {}\n", ec);
-                    return 1;
-                }
+		if (ec != 0) {
+			fmt::print(stderr, "error: {}\n", ec);
+			return 1;
+		}
 
-                (1 == input.sql_only)
-                    ? fmt::print("{}\n", sql)
-                    : fmt::print(fmt::runtime(sql));
+		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(fmt::runtime(sql));
 
-                std::free(sql);
+		std::free(sql);
 
 		return 0;
 	}
@@ -97,7 +98,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 
 auto print_usage_info() -> void
 {
-    fmt::print(R"_(iquery - Query the iRODS Catalog
+	fmt::print(R"_(iquery - Query the iRODS Catalog
 
 Usage: iquery [OPTION]... QUERY_STRING
 
@@ -116,6 +117,6 @@ Options:
   -h, --help            Display this help message and exit.
 )_");
 
-    char name[] = "iquery (experimental)";
-    printReleaseInfo(name);
+	char name[] = "iquery (experimental)";
+	printReleaseInfo(name);
 } // print_usage_info
