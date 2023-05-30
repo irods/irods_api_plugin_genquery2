@@ -8,6 +8,7 @@ ColumnLimit:     120
 UseCRLF:         false
 
 UseTab:          AlignWithSpaces
+#UseTab:          Never
 TabWidth:        4
 IndentWidth:     4
 ConstructorInitializerIndentWidth: 4
@@ -18,7 +19,7 @@ PPIndentWidth:   2
 IndentAccessModifiers: false
 AccessModifierOffset: -2
 
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: Align
 #AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: None
 AlignConsecutiveAssignments: None
@@ -27,7 +28,7 @@ AlignConsecutiveDeclarations: None
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignEscapedNewlines: Left
 AlignOperands:   Align
-AlignTrailingComments: false
+AlignTrailingComments: true
 
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false

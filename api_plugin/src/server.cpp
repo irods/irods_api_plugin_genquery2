@@ -2,7 +2,7 @@
 #include "irods/plugins/api/genquery2_common.h" // For API plugin number.
 
 #include <irods/apiHandler.hpp>
-#include <irods/catalog.hpp> // Requires linking against libnanodbc.so
+#include <irods/catalog.hpp>           // Requires linking against libnanodbc.so
 #include <irods/catalog_utilities.hpp> // Requires linking against libnanodbc.so
 #include <irods/irods_logger.hpp>
 #include <irods/irods_rs_comm_query.hpp>
@@ -51,122 +51,123 @@ namespace
 		}
 
 		// Redirect to the catalog service provider based on the user-provided zone.
-                // This allows clients to query federated zones.
-                //
-                // If the client did not provide a zone, getAndConnRcatHost() will operate as if the
-                // client provided the local zone's name.
-                if (_input->zone) {
-		    log_api::info("GenQuery 2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
-                }
-                else {
-		    log_api::info("GenQuery 2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
-                }
+		// This allows clients to query federated zones.
+		//
+		// If the client did not provide a zone, getAndConnRcatHost() will operate as if the
+		// client provided the local zone's name.
+		if (_input->zone) {
+			log_api::info(
+				"GenQuery 2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
+		}
+		else {
+			log_api::info("GenQuery 2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
+		}
 
-                rodsServerHost* host_info{};
+		rodsServerHost* host_info{};
 
-                if (const auto ec = getAndConnRcatHost(_comm, PRIMARY_RCAT, _input->zone, &host_info); ec < 0) {
-                    log_api::error("Could not connect to remote zone [{}].", _input->zone);
-                    return ec;
-                }
+		if (const auto ec = getAndConnRcatHost(_comm, PRIMARY_RCAT, _input->zone, &host_info); ec < 0) {
+			log_api::error("Could not connect to remote zone [{}].", _input->zone);
+			return ec;
+		}
 
-                // Return an error if the host information does not point to the zone of interest.
-                // getAndConnRcatHost() returns the local zone if the target zone does not exist. We must catch
-                // this situation to avoid querying the wrong catalog.
-                if (host_info && _input->zone) {
-                    const std::string_view resolved_zone = static_cast<zoneInfo*>(host_info->zoneInfo)->zoneName;
+		// Return an error if the host information does not point to the zone of interest.
+		// getAndConnRcatHost() returns the local zone if the target zone does not exist. We must catch
+		// this situation to avoid querying the wrong catalog.
+		if (host_info && _input->zone) {
+			const std::string_view resolved_zone = static_cast<zoneInfo*>(host_info->zoneInfo)->zoneName;
 
-                    if (resolved_zone != _input->zone) {
-                        log_api::error("Could not find zone [{}].", _input->zone);
-                        return SYS_INVALID_ZONE_NAME;
-                    }
-                }
+			if (resolved_zone != _input->zone) {
+				log_api::error("Could not find zone [{}].", _input->zone);
+				return SYS_INVALID_ZONE_NAME;
+			}
+		}
 
-                if (host_info->localFlag != LOCAL_HOST) {
-                    log_api::trace("Redirecting request to remote zone [{}].", _input->zone);
+		if (host_info->localFlag != LOCAL_HOST) {
+			log_api::trace("Redirecting request to remote zone [{}].", _input->zone);
 
-                    return procApiRequest(
-                            host_info->conn,
-                            IRODS_APN_GENQUERY2,
-                            _input,
-                            nullptr,
-                            reinterpret_cast<void**>(_output), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                            nullptr);
-                }
+			return procApiRequest(
+				host_info->conn,
+				IRODS_APN_GENQUERY2,
+				_input,
+				nullptr,
+				reinterpret_cast<void**>(_output), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+				nullptr);
+		}
 
-                //
-                // At this point, we assume we're connected to the catalog service provider.
-                //
+		//
+		// At this point, we assume we're connected to the catalog service provider.
+		//
 
-                try {
-                    using json = nlohmann::json;
+		try {
+			using json = nlohmann::json;
 
-                    gq::options opts;
+			gq::options opts;
 
-                    {
-                        // Get the database type string from server_config.json.
+			{
+				// Get the database type string from server_config.json.
 #ifdef IRODS_ENABLE_430_COMPATIBILITY
-                        const auto& config = irods::server_properties::instance().map();
+				const auto& config = irods::server_properties::instance().map();
 #else
-                        const auto handle = irods::server_properties::instance().map();
-                        const auto& config = handle.get_json();
+				const auto handle = irods::server_properties::instance().map();
+				const auto& config = handle.get_json();
 #endif
-                        const auto& db = config.at(json::json_pointer{"/plugin_configuration/database"});
-                        opts.database = std::begin(db).key();
-                    }
+				const auto& db = config.at(json::json_pointer{"/plugin_configuration/database"});
+				opts.database = std::begin(db).key();
+			}
 
-                    opts.username = _comm->clientUser.userName; // TODO Handle remote users?
-                    opts.admin_mode = irods::is_privileged_client(*_comm);
-                    //opts.default_number_of_rows = 8; // TODO Can be pulled from the catalog on server startup.
+			opts.username = _comm->clientUser.userName; // TODO Handle remote users?
+			opts.admin_mode = irods::is_privileged_client(*_comm);
+			//opts.default_number_of_rows = 8; // TODO Can be pulled from the catalog on server startup.
 
-                    const auto ast = gq::wrapper::parse(_input->query_string);
-                    const auto [sql, values] = gq::to_sql(ast, opts);
+			const auto ast = gq::wrapper::parse(_input->query_string);
+			const auto [sql, values] = gq::to_sql(ast, opts);
 
-                    log_api::info("Returning to client: [{}]", sql);
+			log_api::info("Returning to client: [{}]", sql);
 
-                    if (1 == _input->sql_only) {
-                        *_output = strdup(sql.c_str());
-                        return 0;
-                    }
+			if (1 == _input->sql_only) {
+				*_output = strdup(sql.c_str());
+				return 0;
+			}
 
-                    if (sql.empty()) {
-                        log_api::error("Could not generate SQL from GenQuery.");
-                        return SYS_INVALID_INPUT_PARAM;
-                    }
+			if (sql.empty()) {
+				log_api::error("Could not generate SQL from GenQuery.");
+				return SYS_INVALID_INPUT_PARAM;
+			}
 
-                    auto [db_inst, db_conn] = irods::experimental::catalog::new_database_connection();
+			auto [db_inst, db_conn] = irods::experimental::catalog::new_database_connection();
 
-                    nanodbc::statement stmt{db_conn};
-                    nanodbc::prepare(stmt, sql);
+			nanodbc::statement stmt{db_conn};
+			nanodbc::prepare(stmt, sql);
 
-                    for (std::vector<std::string>::size_type i = 0; i < values.size(); ++i) {
-                        stmt.bind(static_cast<short>(i), values.at(i).c_str());
-                    }
+			for (std::vector<std::string>::size_type i = 0; i < values.size(); ++i) {
+				stmt.bind(static_cast<short>(i), values.at(i).c_str());
+			}
 
-                    auto json_array = json::array();
-                    auto json_row = json::array();
+			auto json_array = json::array();
+			auto json_row = json::array();
 
-                    auto row = nanodbc::execute(stmt);
-                    const auto n_cols = row.columns();
+			auto row = nanodbc::execute(stmt);
+			const auto n_cols = row.columns();
 
-                    while (row.next()) {
-                        for (std::remove_cvref_t<decltype(n_cols)> i = 0; i < n_cols; ++i) {
-                            json_row.push_back(row.get<std::string>(i, ""));
-                        }
+			while (row.next()) {
+				for (std::remove_cvref_t<decltype(n_cols)> i = 0; i < n_cols; ++i) {
+					json_row.push_back(row.get<std::string>(i, ""));
+				}
 
-                        json_array.push_back(json_row);
-                        json_row.clear();
-                    }
+				json_array.push_back(json_row);
+				json_row.clear();
+			}
 
-                    *_output = strdup(json_array.dump().c_str());
-                }
-                catch (const nanodbc::database_error& e) {
-                    log_api::error("Caught database exception while executing query: {}", e.what());
-                    return SYS_LIBRARY_ERROR;
-                }
-                catch (const std::exception& e) {
-                    log_api::error("Caught exception while executing query: {}", e.what());
-                    return SYS_LIBRARY_ERROR;
-                }
+			*_output = strdup(json_array.dump().c_str());
+		}
+		catch (const nanodbc::database_error& e) {
+			log_api::error("Caught database exception while executing query: {}", e.what());
+			return SYS_LIBRARY_ERROR;
+		}
+		catch (const std::exception& e) {
+			log_api::error("Caught exception while executing query: {}", e.what());
+			return SYS_LIBRARY_ERROR;
+		}
 
 		return 0;
 	} // rs_genquery2
