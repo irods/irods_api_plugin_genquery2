@@ -509,6 +509,64 @@ namespace
         return sql;
     } // generate_condition_clause
 
+    auto generate_group_by_clause(const gq_state& _state,
+                                  const gq::group_by& _group_by,
+                                  const std::map<std::string_view, gq::column_info>& _column_name_mappings) -> std::string
+    {
+        if (_group_by.columns.empty()) {
+            return {};
+        }
+
+        std::vector<std::string> resolved_columns;
+        resolved_columns.reserve(_group_by.columns.size());
+
+        for (const auto& c : _group_by.columns) {
+            const auto iter = _column_name_mappings.find(c);
+
+            if (iter == std::end(_column_name_mappings)) {
+                throw std::invalid_argument{fmt::format("unknown column in group-by clause: {}", c)};
+            }
+
+            auto is_special_column = true;
+            std::string_view alias;
+
+            // clang-format off
+            if      (c.starts_with("META_D")) { alias = "mmd"; }
+            else if (c.starts_with("META_C")) { alias = "mmc"; }
+            else if (c.starts_with("META_R")) { alias = "mmr"; }
+            else if (c.starts_with("META_U")) { alias = "mmu"; }
+            else if (c == "DATA_RESC_HIER")   { alias = "cte_drh"; }
+            else                              { is_special_column = false; }
+            // clang-format on
+
+            if (!is_special_column) {
+                alias = _state.table_aliases.at(std::string{iter->second.table});
+            }
+
+            const auto ast_iter = std::find_if(std::begin(_state.ast_column_ptrs), std::end(_state.ast_column_ptrs),
+                [&c](const irods::experimental::api::genquery::column* _p) {
+                    return _p->name == c;
+                });
+
+            if (std::end(_state.ast_column_ptrs) == ast_iter) {
+                throw std::invalid_argument{"cannot generate SQL from General Query."};
+            }
+
+            if ((*ast_iter)->type_name.empty()) {
+                resolved_columns.push_back(fmt::format("{}.{}", alias, iter->second.name));
+            }
+            else {
+                resolved_columns.push_back(fmt::format("cast({}.{} as {})",
+                                                alias,
+                                                iter->second.name,
+                                                (*ast_iter)->type_name));
+            }
+        }
+
+        // All columns in the group-by clause must exist in the list of columns to project.
+        return fmt::format(" group by {}", fmt::join(resolved_columns, ", "));
+    } // generate_group_by_clause
+
     auto generate_order_by_clause(const gq_state& _state,
                                   const gq::order_by& _order_by,
                                   const std::map<std::string_view, gq::column_info>& _column_name_mappings) -> std::string
@@ -1114,6 +1172,7 @@ namespace irods::experimental::api::genquery
             }
 
             sql += generate_condition_clause(state, _opts, conds);
+            sql += generate_group_by_clause(state, _select.group_by, column_name_mappings);
             sql += generate_order_by_clause(state, _select.order_by, column_name_mappings);
             sql += generate_limit_clause(_opts, _select.range.number_of_rows);
 

@@ -241,6 +241,11 @@ namespace irods::experimental::api::genquery
         bool ascending_order = true;
     };
 
+    struct group_by
+    {
+        std::vector<std::string> columns;
+    }; // struct group_by
+
     struct order_by
     {
         std::vector<sort_expression> sort_expressions;
@@ -264,6 +269,7 @@ namespace irods::experimental::api::genquery
 
         selections selections;
         conditions conditions;
+        group_by group_by;
         order_by order_by;
         range range;
         bool distinct = true;
