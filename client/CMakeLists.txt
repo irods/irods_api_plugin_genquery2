@@ -22,6 +22,7 @@ target_link_libraries(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
   irods_client
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
 
 add_dependencies(${IRODS_EXECUTABLE_NAME} irods_genquery2_client)
