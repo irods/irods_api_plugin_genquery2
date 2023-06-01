@@ -30,8 +30,6 @@ namespace irods::experimental::genquery2
 		irods::experimental::api::genquery::select select;
 		scanner lexer;
 		yy::location location;
-		bool trace_parsing = false;
-		bool trace_scanning = false;
 	}; // class driver
 } // namespace irods::experimental::genquery2
 
