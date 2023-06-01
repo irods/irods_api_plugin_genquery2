@@ -14,6 +14,7 @@ Once stable, the code will be merged into the iRODS server making it available w
 - Logical AND, OR, and NOT
 - Grouping via parentheses
 - SQL CAST
+- SQL GROUP BY
 - SQL aggregate functions (e.g. count, sum, avg, etc)
 - Per-column sorting via ORDER BY [ASC|DESC]
 - SQL FETCH FIRST N ROWS ONLY (LIMIT offered as an alias)
