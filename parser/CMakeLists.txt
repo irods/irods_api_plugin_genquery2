@@ -54,9 +54,3 @@ target_link_libraries(
   irods_server
   ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib/libc++.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
-
-install(
-  FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery2_driver.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery2_sql.hpp
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/irods")
