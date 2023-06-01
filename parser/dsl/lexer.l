@@ -1,69 +1,80 @@
 %{
-    #include "irods/genquery_scanner.hpp"
-    #include "irods/genquery_wrapper.hpp"
-    #include "parser.hpp"
-    #include "location.hh"
+    #include "irods/genquery2_driver.hpp"
 
     #include <fmt/format.h>
-
-    #define yyterminate() gq::parser::make_END_OF_INPUT(gq::location());
-
-    #define YY_USER_ACTION wrapper_.increment_location(yyleng);
 %}
 
-%option c++ warn nodefault noyywrap
+%option c++ warn nodefault noyywrap nounput noinput batch
+
+/*
+ Informs flex that we've derived a class from yyFlexLexer and its
+ name is "scanner". flex will then place the lexer implementation
+ into <derived_class>::yylex.
+*/
 %option yyclass="scanner"
-%option prefix="Genquery_"
+
+%{
+    // Code run each time a pattern is matched.
+    #define YY_USER_ACTION loc.columns(yyleng);
+%}
 
 %%
 
+%{
+    // A handy shortcut to the location held by the driver.
+    auto& loc = drv.location;
+
+    // Code run each time yylex() is called.
+    loc.step();
+%}
+
 [ \t\n]                ;
-'(''|[^'])*'           { yytext[yyleng - 1] = '\0'; ++yytext; return gq::parser::make_STRING_LITERAL(yytext, gq::location()); }
-(?i:select)            return gq::parser::make_SELECT(gq::location());
-(?i:where)             return gq::parser::make_WHERE(gq::location());
-(?i:like)              return gq::parser::make_LIKE(gq::location());
-(?i:in)                return gq::parser::make_IN(gq::location());
-(?i:between)           return gq::parser::make_BETWEEN(gq::location());
-(?i:no)                return gq::parser::make_NO(gq::location());
-(?i:distinct)          return gq::parser::make_DISTINCT(gq::location());
-(?i:order)             return gq::parser::make_ORDER(gq::location());
-(?i:by)                return gq::parser::make_BY(gq::location());
-(?i:asc)               return gq::parser::make_ASC(gq::location());
-(?i:desc)              return gq::parser::make_DESC(gq::location());
-(?i:offset)            return gq::parser::make_OFFSET(gq::location());
-(?i:limit)             return gq::parser::make_LIMIT(gq::location());
-(?i:fetch)             return gq::parser::make_FETCH(gq::location());
-(?i:first)             return gq::parser::make_FIRST(gq::location());
-(?i:rows)              return gq::parser::make_ROWS(gq::location());
-(?i:only)              return gq::parser::make_ONLY(gq::location());
-(?i:case)              return gq::parser::make_CASE(gq::location());
-(?i:when)              return gq::parser::make_WHEN(gq::location());
-(?i:else)              return gq::parser::make_ELSE(gq::location());
-(?i:end)               return gq::parser::make_END(gq::location());
-(?i:group)             return gq::parser::make_GROUP(gq::location());
-(?i:having)            return gq::parser::make_HAVING(gq::location());
-(?i:exists)            return gq::parser::make_EXISTS(gq::location());
-(?i:is)                return gq::parser::make_IS(gq::location());
-(?i:null)              return gq::parser::make_NULL(gq::location());
-(?i:not)               return gq::parser::make_NOT(gq::location());
-(?i:and)               return gq::parser::make_AND(gq::location());
-(?i:or)                return gq::parser::make_OR(gq::location());
-(?i:cast)              return gq::parser::make_CAST(gq::location());
-(?i:as)                return gq::parser::make_AS(gq::location());
-"="                    return gq::parser::make_EQUAL(gq::location());
-"!="                   return gq::parser::make_NOT_EQUAL(gq::location());
-"<>"                   return gq::parser::make_NOT_EQUAL(gq::location());
-"<"                    return gq::parser::make_LESS_THAN(gq::location());
-"<="                   return gq::parser::make_LESS_THAN_OR_EQUAL_TO(gq::location());
-">"                    return gq::parser::make_GREATER_THAN(gq::location());
-">="                   return gq::parser::make_GREATER_THAN_OR_EQUAL_TO(gq::location());
-","                    return gq::parser::make_COMMA(gq::location());
-"("                    return gq::parser::make_PAREN_OPEN(gq::location());
-")"                    return gq::parser::make_PAREN_CLOSE(gq::location());
-[a-zA-Z][a-zA-Z0-9_]*  return gq::parser::make_IDENTIFIER(yytext, gq::location());
-[0-9]+                 return gq::parser::make_POSITIVE_INTEGER(yytext, gq::location());
--?[0-9]+               return gq::parser::make_INTEGER(yytext, gq::location());
-.                      throw gq::parser::syntax_error{gq::location(), fmt::format("invalid character: {}", yytext)};
-<<EOF>>                return yyterminate();
+'(''|[^'])*'           { yytext[yyleng - 1] = '\0'; ++yytext; return yy::parser::make_STRING_LITERAL(yytext, loc); }
+(?i:select)            return yy::parser::make_SELECT(loc);
+(?i:where)             return yy::parser::make_WHERE(loc);
+(?i:like)              return yy::parser::make_LIKE(loc);
+(?i:in)                return yy::parser::make_IN(loc);
+(?i:between)           return yy::parser::make_BETWEEN(loc);
+(?i:no)                return yy::parser::make_NO(loc);
+(?i:distinct)          return yy::parser::make_DISTINCT(loc);
+(?i:order)             return yy::parser::make_ORDER(loc);
+(?i:by)                return yy::parser::make_BY(loc);
+(?i:asc)               return yy::parser::make_ASC(loc);
+(?i:desc)              return yy::parser::make_DESC(loc);
+(?i:offset)            return yy::parser::make_OFFSET(loc);
+(?i:limit)             return yy::parser::make_LIMIT(loc);
+(?i:fetch)             return yy::parser::make_FETCH(loc);
+(?i:first)             return yy::parser::make_FIRST(loc);
+(?i:rows)              return yy::parser::make_ROWS(loc);
+(?i:only)              return yy::parser::make_ONLY(loc);
+(?i:case)              return yy::parser::make_CASE(loc);
+(?i:when)              return yy::parser::make_WHEN(loc);
+(?i:else)              return yy::parser::make_ELSE(loc);
+(?i:end)               return yy::parser::make_END(loc);
+(?i:group)             return yy::parser::make_GROUP(loc);
+(?i:having)            return yy::parser::make_HAVING(loc);
+(?i:exists)            return yy::parser::make_EXISTS(loc);
+(?i:is)                return yy::parser::make_IS(loc);
+(?i:null)              return yy::parser::make_NULL(loc);
+(?i:not)               return yy::parser::make_NOT(loc);
+(?i:and)               return yy::parser::make_AND(loc);
+(?i:or)                return yy::parser::make_OR(loc);
+(?i:cast)              return yy::parser::make_CAST(loc);
+(?i:as)                return yy::parser::make_AS(loc);
+"="                    return yy::parser::make_EQUAL(loc);
+"!="                   return yy::parser::make_NOT_EQUAL(loc);
+"<>"                   return yy::parser::make_NOT_EQUAL(loc);
+"<"                    return yy::parser::make_LESS_THAN(loc);
+"<="                   return yy::parser::make_LESS_THAN_OR_EQUAL_TO(loc);
+">"                    return yy::parser::make_GREATER_THAN(loc);
+">="                   return yy::parser::make_GREATER_THAN_OR_EQUAL_TO(loc);
+","                    return yy::parser::make_COMMA(loc);
+"("                    return yy::parser::make_PAREN_OPEN(loc);
+")"                    return yy::parser::make_PAREN_CLOSE(loc);
+[a-zA-Z][a-zA-Z0-9_]*  return yy::parser::make_IDENTIFIER(yytext, loc);
+[0-9]+                 return yy::parser::make_POSITIVE_INTEGER(yytext, loc);
+-?[0-9]+               return yy::parser::make_INTEGER(yytext, loc);
+.                      throw yy::parser::syntax_error{loc, fmt::format("invalid character: {}", yytext)};
+<<EOF>>                return yy::parser::make_END_OF_INPUT(loc);
 
 %%

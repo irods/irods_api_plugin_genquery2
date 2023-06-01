@@ -15,8 +15,8 @@ set(IRODS_BISON_OUTPUTS "BISON_${IRODS_BISON_PARSER_NAME}_OUTPUTS")
 add_library(
   ${IRODS_PARSER_NAME}
   OBJECT
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/genquery_sql.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/genquery_wrapper.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/genquery2_driver.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/genquery2_sql.cpp
   ${${IRODS_FLEX_OUTPUTS}}
   ${${IRODS_BISON_OUTPUTS}})
 
@@ -34,8 +34,6 @@ target_compile_definitions(
   ${IRODS_PARSER_NAME}
   PRIVATE
   ${IRODS_COMPILE_DEFINITIONS_PRIVATE}
-  #RODS_SERVER
-  #ENABLE_RE
   IRODS_ENABLE_SYSLOG)
 
 target_include_directories(
@@ -59,6 +57,6 @@ target_link_libraries(
 
 install(
   FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery_sql.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery_wrapper.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery2_driver.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/irods/genquery2_sql.hpp
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/irods")

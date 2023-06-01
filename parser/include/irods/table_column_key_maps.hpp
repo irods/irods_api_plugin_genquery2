@@ -1,5 +1,5 @@
-#ifndef IRODS_TABLE_COLUMN_KEY_MAPS_HPP
-#define IRODS_TABLE_COLUMN_KEY_MAPS_HPP
+#ifndef IRODS_GENQUERY2_TABLE_COLUMN_KEY_MAPS_HPP
+#define IRODS_GENQUERY2_TABLE_COLUMN_KEY_MAPS_HPP
 
 #include <map>
 #include <string_view>
@@ -17,6 +17,7 @@ namespace irods::experimental::api::genquery
 		}
 	}; // struct column_info
 
+	// clang-format off
 	const std::map<std::string_view, column_info> column_name_mappings{
 		{"ZONE_ID", {"R_ZONE_MAIN", "zone_id"}},
 		{"ZONE_NAME", {"R_ZONE_MAIN", "zone_name"}},
@@ -225,6 +226,7 @@ namespace irods::experimental::api::genquery
 		//{"TICKET_DATA_COLL_NAME",          {"R_COLL_MAIN", "coll_name"}} // Includes join between R_DATA_MAIN and
 		//R_COLL_MAIN. What is this?
 	}; // column_name_mappings
+	// clang-format on
 } //namespace irods::experimental::api::genquery
 
-#endif // IRODS_TABLE_COLUMN_KEY_MAPS_HPP
+#endif // IRODS_GENQUERY2_TABLE_COLUMN_KEY_MAPS_HPP

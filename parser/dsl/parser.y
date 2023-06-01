@@ -19,61 +19,97 @@ This option causes make_* functions to be generated for each token kind.
 /* Enables runtime assertions to catch invalid uses. In C++, detects improper use of variants. */
 %define parse.assert
 
+%define parse.trace
+%define parse.error verbose /* Can produce incorrect information if LAC is not enabled. */
+
 /* Defines the namespace for the parser class. */
-%define api.namespace { irods::experimental::api::genquery }
+/*%define api.namespace { irods::experimental::genquery2 }*/
 
-%code top
-{
-    #include "irods/genquery_scanner.hpp"
-    #include "parser.hpp"
-    #include "irods/genquery_wrapper.hpp"
-    #include "location.hh"
+/* An argument passed to both the lexer and the parser. */
+%param {irods::experimental::genquery2::driver& drv}
 
-    static gq::parser::symbol_type yylex(gq::scanner& _scanner, gq::wrapper& _wrapper)
-    {
-        return _scanner.get_next_token();
-    }
+%locations
+
+/* Code to be included in the parser's header and implementation file. */
+%code provides {
+    #undef YY_DECL
+
+    #define YY_DECL \
+        yy::parser::symbol_type irods::experimental::genquery2::scanner::yylex(irods::experimental::genquery2::driver& drv)
 }
 
-%code requires
-{
-    #include "irods/genquery_ast_types.hpp"
+/* Code to be included in the parser's implementation file. */
+%code requires {
+    #include "irods/genquery2_ast_types.hpp"
 
     #include <string>
     #include <vector>
 
     #include <fmt/format.h>
 
-    namespace irods::experimental::api::genquery
+    // TODO This appears to work, but perhaps it would be better to include the driver.hpp header?
+    namespace irods::experimental::genquery2
     {
-        class scanner;
-        class wrapper;
-    } // namespace irods::experimental::api::genquery
+        class driver;
+    } // namespace irods::experimental::genquery2
 
     namespace gq = irods::experimental::api::genquery;
 }
 
-/*
-The following can be replaced by %param.
-%lex-param { gq::scanner& scanner } { gq::wrapper& wrapper }
-%parse-param { gq::scanner& scanner } { gq::wrapper& wrapper }
-*/
-%param { gq::scanner& scanner } { gq::wrapper& wrapper }
-%locations
-%define parse.trace
-%define parse.error verbose /* Can produce incorrect info if LAC is not enabled. */
+%code {
+    #include "irods/genquery2_driver.hpp"
 
-%define api.token.prefix {IRODS_GENQUERY_TOKEN_}
+    auto yylex(irods::experimental::genquery2::driver&) -> yy::parser::symbol_type;
+}
 
-%token <std::string> IDENTIFIER STRING_LITERAL POSITIVE_INTEGER INTEGER
-%token SELECT NO DISTINCT WHERE NOT AND OR COMMA PAREN_OPEN PAREN_CLOSE
-%token BETWEEN EQUAL NOT_EQUAL LIKE IN
-%token LESS_THAN GREATER_THAN LESS_THAN_OR_EQUAL_TO GREATER_THAN_OR_EQUAL_TO
-%token ORDER BY ASC DESC
-%token OFFSET FETCH FIRST ROWS ONLY LIMIT
-%token CASE WHEN ELSE END
-%token GROUP HAVING EXISTS IS NULL
-%token CAST AS
+%define api.token.prefix {IRODS_GENQUERY2_TOKEN_}
+%token
+    AND
+    AS
+    ASC
+    BETWEEN
+    BY
+    CASE
+    CAST
+    COMMA
+    DESC
+    ELSE
+    END
+    EQUAL
+    EXISTS
+    FETCH
+    FIRST
+    GREATER_THAN
+    GREATER_THAN_OR_EQUAL_TO
+    GROUP
+    HAVING
+    IN
+    IS
+    LESS_THAN
+    LESS_THAN_OR_EQUAL_TO
+    LIKE
+    LIMIT
+    NO DISTINCT
+    NOT
+    NOT_EQUAL
+    NULL
+    OFFSET
+    ONLY
+    OR
+    ORDER
+    PAREN_CLOSE
+    PAREN_OPEN
+    ROWS
+    SELECT
+    WHEN
+    WHERE
+;
+%token <std::string>
+    IDENTIFIER
+    STRING_LITERAL
+    POSITIVE_INTEGER
+    INTEGER
+;
 %token END_OF_INPUT 0
 
 /*
@@ -93,36 +129,36 @@ rules only.
 %left AND
 %precedence NOT
 
-%type<gq::selections> selections;
-%type<gq::conditions> conditions;
-%type<gq::group_by> group_by;
-%type<gq::order_by> order_by;
-%type<std::vector<gq::sort_expression>> sort_expr;
-%type<gq::range> range;
-%type<gq::selection> selection;
-%type<gq::column> column;
-%type<gq::select_function> select_function;
-%type<gq::condition> condition;
-%type<gq::condition_expression> condition_expression;
-%type<std::vector<std::string>> list_of_string_literals;
-%type<std::vector<std::string>> list_of_identifiers;
+%type <gq::selections>                   selections;
+%type <gq::conditions>                   conditions;
+%type <gq::group_by>                     group_by;
+%type <gq::order_by>                     order_by;
+%type <std::vector<gq::sort_expression>> sort_expr;
+%type <gq::range>                        range;
+%type <gq::selection>                    selection;
+%type <gq::column>                       column;
+%type <gq::select_function>              select_function;
+%type <gq::condition>                    condition;
+%type <gq::condition_expression>         condition_expression;
+%type <std::vector<std::string>>         list_of_string_literals;
+%type <std::vector<std::string>>         list_of_identifiers;
 
 %start genquery /* Defines where grammar starts */
 
 %%
 
 genquery:
-    select group_by  { std::swap(wrapper.select_.group_by, $2); }
-  | select group_by order_by  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $3); }
-  | select group_by range  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.range, $3); }
-  | select group_by order_by range  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $3); std::swap(wrapper.select_.range, $4); }
-  | select group_by range order_by  { std::swap(wrapper.select_.group_by, $2); std::swap(wrapper.select_.order_by, $4); std::swap(wrapper.select_.range, $3); }
+    select group_by  { std::swap(drv.select.group_by, $2); }
+  | select group_by order_by  { std::swap(drv.select.group_by, $2); std::swap(drv.select.order_by, $3); }
+  | select group_by range  { std::swap(drv.select.group_by, $2); std::swap(drv.select.range, $3); }
+  | select group_by order_by range  { std::swap(drv.select.group_by, $2); std::swap(drv.select.order_by, $3); std::swap(drv.select.range, $4); }
+  | select group_by range order_by  { std::swap(drv.select.group_by, $2); std::swap(drv.select.order_by, $4); std::swap(drv.select.range, $3); }
 
 select:
-    SELECT selections  { std::swap(wrapper.select_.selections, $2); }
-  | SELECT selections WHERE conditions  { std::swap(wrapper.select_.selections, $2); std::swap(wrapper.select_.conditions, $4); }
-  | SELECT NO DISTINCT selections  { wrapper.select_.distinct = false; std::swap(wrapper.select_.selections, $4); }
-  | SELECT NO DISTINCT selections WHERE conditions  { wrapper.select_.distinct = false; std::swap(wrapper.select_.selections, $4); std::swap(wrapper.select_.conditions, $6); }
+    SELECT selections  { std::swap(drv.select.selections, $2); }
+  | SELECT selections WHERE conditions  { std::swap(drv.select.selections, $2); std::swap(drv.select.conditions, $4); }
+  | SELECT NO DISTINCT selections  { drv.select.distinct = false; std::swap(drv.select.selections, $4); }
+  | SELECT NO DISTINCT selections WHERE conditions  { drv.select.distinct = false; std::swap(drv.select.selections, $4); std::swap(drv.select.conditions, $6); }
 
 group_by:
     %empty
@@ -201,7 +237,12 @@ list_of_identifiers:
 
 %%
 
-void gq::parser::error(const location& _location, const std::string& _message)
+auto yy::parser::error(const yy::location& _loc, const std::string& _msg) -> void
 {
-    throw std::invalid_argument{fmt::format("{} @ {}", _message, wrapper.location())};
+    throw std::invalid_argument{fmt::format("{} @ {}", _msg, _loc.begin.column)};
 } // gq::parser::error
+
+auto yylex(irods::experimental::genquery2::driver& drv) -> yy::parser::symbol_type
+{
+    return drv.lexer.yylex(drv);
+} // yylex

@@ -1,5 +1,5 @@
-#ifndef IRODS_GENQUERY_AST_TYPES_HPP
-#define IRODS_GENQUERY_AST_TYPES_HPP
+#ifndef IRODS_GENQUERY2_ABSTRACT_SYNTAX_TREE_DATA_TYPES_HPP
+#define IRODS_GENQUERY2_ABSTRACT_SYNTAX_TREE_DATA_TYPES_HPP
 
 #include <boost/variant.hpp>
 
@@ -26,7 +26,7 @@ namespace irods::experimental::api::genquery
 
 		std::string name;
 		std::string type_name;
-	};
+	}; // struct column
 
 	struct select_function
 	{
@@ -40,7 +40,7 @@ namespace irods::experimental::api::genquery
 
 		std::string name;
 		column column;
-	};
+	}; // struct select_function
 
 	struct condition_like
 	{
@@ -52,7 +52,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_like
 
 	struct condition_in
 	{
@@ -64,7 +64,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::vector<std::string> list_of_string_literals;
-	};
+	}; // struct condition_in
 
 	struct condition_between
 	{
@@ -78,7 +78,7 @@ namespace irods::experimental::api::genquery
 
 		std::string low;
 		std::string high;
-	};
+	}; // struct condition_between
 
 	struct condition_equal
 	{
@@ -90,7 +90,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_equal
 
 	struct condition_not_equal
 	{
@@ -102,7 +102,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_not_equal
 
 	struct condition_less_than
 	{
@@ -114,7 +114,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_less_than
 
 	struct condition_less_than_or_equal_to
 	{
@@ -126,7 +126,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_less_than_or_equal_to
 
 	struct condition_greater_than
 	{
@@ -138,7 +138,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_greater_than
 
 	struct condition_greater_than_or_equal_to
 	{
@@ -150,15 +150,15 @@ namespace irods::experimental::api::genquery
 		}
 
 		std::string string_literal;
-	};
+	}; // struct condition_greater_than_or_equal_to
 
 	struct condition_is_null
 	{
-	};
+	}; // struct condition_is_null
 
 	struct condition_is_not_null
 	{
-	};
+	}; // struct condition_is_not_null
 
 	struct condition_operator_not;
 
@@ -185,7 +185,7 @@ namespace irods::experimental::api::genquery
 		}
 
 		condition_expression expression;
-	};
+	}; // struct condition_operator_not
 
 	struct condition
 	{
@@ -199,7 +199,7 @@ namespace irods::experimental::api::genquery
 
 		column column;
 		condition_expression expression;
-	};
+	}; // struct condition
 
 	struct logical_and;
 	struct logical_or;
@@ -217,28 +217,28 @@ namespace irods::experimental::api::genquery
 	struct logical_and
 	{
 		conditions condition;
-	};
+	}; // struct logical_and
 
 	struct logical_or
 	{
 		conditions condition;
-	};
+	}; // struct logical_or
 
 	struct logical_not
 	{
 		conditions condition;
-	};
+	}; // struct logical_not
 
 	struct logical_grouping
 	{
 		conditions conditions;
-	};
+	}; // struct logical_grouping
 
 	struct sort_expression
 	{
 		std::string column;
 		bool ascending_order = true;
-	};
+	}; // struct sort_expression
 
 	struct group_by
 	{
@@ -272,7 +272,7 @@ namespace irods::experimental::api::genquery
 		order_by order_by;
 		range range;
 		bool distinct = true;
-	};
+	}; // struct select
 } // namespace irods::experimental::api::genquery
 
-#endif // IRODS_GENQUERY_AST_TYPES_HPP
+#endif // IRODS_GENQUERY2_ABSTRACT_SYNTAX_TREE_DATA_TYPES_HPP
