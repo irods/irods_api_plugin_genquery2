@@ -1,6 +1,6 @@
-#include "irods/genquery_sql.hpp"
+#include "irods/genquery2_sql.hpp"
 
-#include "irods/genquery_ast_types.hpp"
+#include "irods/genquery2_ast_types.hpp"
 #include "irods/vertex_property.hpp"
 #include "irods/edge_property.hpp"
 #include "irods/table_column_key_maps.hpp"
@@ -11,6 +11,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
+
 #include <fmt/format.h>
 
 #include <algorithm>

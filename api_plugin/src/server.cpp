@@ -13,8 +13,8 @@
 #include <irods/rodsDef.h>
 #include <irods/rodsErrorTable.h>
 
-#include "irods/genquery_sql.hpp"
-#include "irods/genquery_wrapper.hpp"
+#include "irods/genquery2_driver.hpp"
+#include "irods/genquery2_sql.hpp"
 
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
@@ -119,8 +119,14 @@ namespace
 			opts.admin_mode = irods::is_privileged_client(*_comm);
 			//opts.default_number_of_rows = 8; // TODO Can be pulled from the catalog on server startup.
 
-			const auto ast = gq::wrapper::parse(_input->query_string);
-			const auto [sql, values] = gq::to_sql(ast, opts);
+			irods::experimental::genquery2::driver driver;
+
+			if (const auto ec = driver.parse(_input->query_string); ec != 0) {
+				log_api::error("Failed to parse GenQuery2 string. [error code=[{}]]", ec);
+				return SYS_LIBRARY_ERROR;
+			}
+
+			const auto [sql, values] = gq::to_sql(driver.select, opts);
 
 			log_api::info("Returning to client: [{}]", sql);
 
