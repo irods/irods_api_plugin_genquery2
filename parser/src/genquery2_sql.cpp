@@ -195,14 +195,14 @@ namespace
 		{"{}.object_id = {}.resc_id", 10},
 		{"{}.object_id = {}.user_id", 11},
 
-		{"{}.user_id = {}.user_id", 13},
+		{"{}.user_id = {}.user_id", 12},
 
+		{"{}.ticket_id = {}.ticket_id", 13},
 		{"{}.ticket_id = {}.ticket_id", 14},
 		{"{}.ticket_id = {}.ticket_id", 15},
-		{"{}.ticket_id = {}.ticket_id", 16},
 
-		{"{}.user_id = {}.user_id", 17},
-		{"{}.user_id = {}.group_user_id", 18},
+		{"{}.user_id = {}.user_id", 16},
+		{"{}.user_id = {}.group_user_id", 17},
 		{"{}.user_id = {}.user_id", 18},
 		{"{}.user_id = {}.user_id", 19},
     }); // table_joins
