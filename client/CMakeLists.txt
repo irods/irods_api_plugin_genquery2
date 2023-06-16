@@ -7,7 +7,7 @@ add_executable(
 target_compile_definitions(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
-  #${IRODS_COMPILE_DEFINITIONS}
+  #${IRODS_COMPILE_DEFINITIONS} # TODO Is this needed?
   ${IRODS_COMPILE_DEFINITIONS_PRIVATE})
 
 target_include_directories(
@@ -16,11 +16,13 @@ target_include_directories(
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/api_plugin/include>
   ${IRODS_INCLUDE_DIRS}
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+  ${IRODS_EXTERNALS_FULLPATH_JSON}/include
   ${IRODS_EXTERNALS_FULLPATH_FMT}/include)
 
 target_link_libraries(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
+  irods_common
   irods_client
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
