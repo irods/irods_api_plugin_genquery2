@@ -28,6 +28,11 @@ if (IRODS_ENABLE_430_COMPATIBILITY)
     ${IRODS_PARSER_NAME}
     PRIVATE
     IRODS_ENABLE_430_COMPATIBILITY)
+elseif (IRODS_ENABLE_42X_COMPATIBILITY)
+  target_compile_definitions(
+    ${IRODS_PARSER_NAME}
+    PRIVATE
+    IRODS_ENABLE_42X_COMPATIBILITY)
 endif()
 
 target_compile_definitions(
@@ -47,10 +52,14 @@ target_include_directories(
   ${IRODS_EXTERNALS_FULLPATH_JSON}/include # TODO Should this be nlohmann_json::nlohmann_json?
   ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
 
-target_link_libraries(
-  ${IRODS_PARSER_NAME}
-  PRIVATE
-  #${FLEX_LIBRARIES} # This causes a compiler error when using C++ (i.e. undefined reference to yylex()).
-  irods_server
-  ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib/libc++.so
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+# TODO Perhaps this block isn't needed at all because we're generating an object file?
+# The conditional allows the code to compile for 4.2.11 for some reason. 4.3 isn't affected by this. Why?
+if (NOT IRODS_ENABLE_42X_COMPATIBILITY)
+  target_link_libraries(
+    ${IRODS_PARSER_NAME}
+    PRIVATE
+    #${FLEX_LIBRARIES} # This causes a compiler error when using C++ (i.e. undefined reference to yylex()).
+    irods_server
+    ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib/libc++.so
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+endif()

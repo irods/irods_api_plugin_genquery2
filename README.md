@@ -60,6 +60,11 @@ If you're compiling this project against a later version of iRODS 4.3, then you'
 cmake -DIRODS_ENABLE_430_COMPATIBILITY=NO /path/to/git/repo
 ```
 
+This project can also be compiled for iRODS 4.2.11 and iRODS 4.2.12. To do that, run the following:
+```bash
+cmake -DIRODS_ENABLE_42X_COMPATIBILITY=YES -DIRODS_ENABLE_430_COMPATIBILITY=NO /path/to/git/repo
+```
+
 So far, this implementation has only run on Ubuntu 20.04 and Almalinux 8.
 
 ## Usage

@@ -7,7 +7,7 @@ add_executable(
 target_compile_definitions(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
-  #${IRODS_COMPILE_DEFINITIONS}
+  #${IRODS_COMPILE_DEFINITIONS} # TODO Is this needed?
   ${IRODS_COMPILE_DEFINITIONS_PRIVATE})
 
 target_include_directories(
@@ -24,6 +24,23 @@ target_link_libraries(
   irods_client
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+
+if (IRODS_ENABLE_42X_COMPATIBILITY)
+  target_compile_definitions(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+    IRODS_ENABLE_42X_COMPATIBILITY)
+
+  target_include_directories(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
+
+  target_link_libraries(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+	irods_common) # For irods::exception.
+endif()
 
 add_dependencies(${IRODS_EXECUTABLE_NAME} irods_genquery2_client)
 

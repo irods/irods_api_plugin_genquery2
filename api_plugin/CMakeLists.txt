@@ -19,6 +19,16 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
       ${IRODS_MODULE_NAME}
       PRIVATE
       IRODS_ENABLE_430_COMPATIBILITY)
+  elseif (IRODS_ENABLE_42X_COMPATIBILITY)
+    target_compile_definitions(
+      ${IRODS_MODULE_NAME}
+      PRIVATE
+      IRODS_ENABLE_42X_COMPATIBILITY)
+  
+    target_include_directories(
+      ${IRODS_MODULE_NAME}
+      PRIVATE
+  	  ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
   endif()
 
   target_compile_definitions(

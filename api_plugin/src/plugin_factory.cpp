@@ -2,9 +2,14 @@
 #include "irods/plugins/api/genquery2_common.h" // For API plugin number.
 
 #include <irods/apiHandler.hpp>
-#include <irods/client_api_allowlist.hpp>
 #include <irods/rcMisc.h>
 #include <irods/rodsPackInstruct.h>
+
+#ifdef IRODS_ENABLE_42X_COMPATIBILITY
+#  include <irods/client_api_whitelist.hpp>
+#else
+#  include <irods/client_api_allowlist.hpp>
+#endif // IRODS_ENABLE_42X_COMPATIBILITY
 
 // The plugin factory function must always be defined.
 extern "C" auto plugin_factory(
@@ -14,11 +19,13 @@ extern "C" auto plugin_factory(
 #ifdef RODS_SERVER
 	// If your API endpoint is designed to be invocable by non-admins, then you need to
 	// add the API plugin number to the allowlist.
-#  ifdef IRODS_ENABLE_430_COMPATIBILITY
+#  if defined(IRODS_ENABLE_430_COMPATIBILITY)
 	irods::client_api_allowlist::instance().add(IRODS_APN_GENQUERY2);
+#  elif defined(IRODS_ENABLE_42X_COMPATIBILITY)
+	irods::client_api_whitelist::instance().add(IRODS_APN_GENQUERY2);
 #  else
 	irods::client_api_allowlist::add(IRODS_APN_GENQUERY2);
-#  endif // IRODS_ENABLE_430_COMPATIBILITY
+#  endif
 #endif // RODS_SERVER
 
 	// TODO We need to be able to add API plugin numbers to the API plugin number map.
@@ -35,7 +42,7 @@ extern "C" auto plugin_factory(
 		0,
 		op,
 		"api_genquery2",
-#ifdef IRODS_ENABLE_430_COMPATIBILITY
+#if defined(IRODS_ENABLE_430_COMPATIBILITY) || defined(IRODS_ENABLE_42X_COMPATIBILITY)
 		[](void* _p) {
 			auto* q = static_cast<genquery2_input*>(_p);
 			if (q->query_string) { std::free(q->query_string); }
@@ -48,7 +55,7 @@ extern "C" auto plugin_factory(
 			if (q->zone)         { std::free(q->zone); }
 		},
 		irods::clearOutStruct_noop, // TODO This blocks support for 4.2.
-#endif // IRODS_ENABLE_430_COMPATIBILITY
+#endif // defined(IRODS_ENABLE_430_COMPATIBILITY) || defined(IRODS_ENABLE_42X_COMPATIBILITY)
 		fn_ptr
 	};
 	// clang-format on

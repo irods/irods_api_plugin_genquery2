@@ -15,7 +15,11 @@ auto print_usage_info() -> void;
 
 int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 {
+#ifdef IRODS_ENABLE_42X_COMPATIBILITY
+	setenv(SP_OPTION, "iquery (experimental)", /* overwrite */ 1);
+#else
 	set_ips_display_name("iquery (experimental)");
+#endif // IRODS_ENABLE_42X_COMPATIBILITY
 
 	namespace po = boost::program_options;
 
@@ -80,7 +84,11 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 			return 1;
 		}
 
+#ifdef IRODS_ENABLE_42X_COMPATIBILITY
+		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(sql);
+#else
 		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(fmt::runtime(sql));
+#endif // IRODS_ENABLE_42X_COMPATIBILITY
 
 		std::free(sql);
 

@@ -35,11 +35,32 @@ target_link_libraries(
   ${IRODS_RULE_ENGINE_PLUGIN_NAME}
   PRIVATE
   irods_server
-  nlohmann_json::nlohmann_json
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
   dl)
+
+if (IRODS_ENABLE_42X_COMPATIBILITY)
+  target_compile_definitions(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    IRODS_ENABLE_42X_COMPATIBILITY)
+
+  target_include_directories(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
+
+  target_link_libraries(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+	irods_common) # For rodsLog, etc.
+else()
+  target_link_libraries(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    nlohmann_json::nlohmann_json)
+endif()
 
 install(
   TARGETS ${IRODS_RULE_ENGINE_PLUGIN_NAME}
