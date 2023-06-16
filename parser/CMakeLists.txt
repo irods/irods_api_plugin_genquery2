@@ -23,13 +23,6 @@ add_library(
 set_target_properties(${IRODS_PARSER_NAME} PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE TRUE)
 set_target_properties(${IRODS_PARSER_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-if (IRODS_ENABLE_430_COMPATIBILITY)
-  target_compile_definitions(
-    ${IRODS_PARSER_NAME}
-    PRIVATE
-    IRODS_ENABLE_430_COMPATIBILITY)
-endif()
-
 target_compile_definitions(
   ${IRODS_PARSER_NAME}
   PRIVATE
@@ -46,11 +39,3 @@ target_include_directories(
   ${IRODS_EXTERNALS_FULLPATH_FMT}/include
   ${IRODS_EXTERNALS_FULLPATH_JSON}/include # TODO Should this be nlohmann_json::nlohmann_json?
   ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
-
-target_link_libraries(
-  ${IRODS_PARSER_NAME}
-  PRIVATE
-  #${FLEX_LIBRARIES} # This causes a compiler error when using C++ (i.e. undefined reference to yylex()).
-  irods_server
-  ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib/libc++.so
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)

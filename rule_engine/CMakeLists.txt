@@ -29,13 +29,14 @@ target_include_directories(
   ${IRODS_INCLUDE_DIRS}
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
   ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+  ${IRODS_EXTERNALS_FULLPATH_JSON}/include
   ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
 
 target_link_libraries(
   ${IRODS_RULE_ENGINE_PLUGIN_NAME}
   PRIVATE
+  irods_common
   irods_server
-  nlohmann_json::nlohmann_json
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
   ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so

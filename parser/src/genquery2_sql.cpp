@@ -6,10 +6,11 @@
 #include "irods/table_column_key_maps.hpp"
 
 #include <irods/irods_at_scope_exit.hpp>
-#include <irods/irods_logger.hpp>
+#include <irods/rodsLog.h>
 
-#include <boost/graph/graph_traits.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
 
 #include <fmt/format.h>
@@ -21,38 +22,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#ifdef IRODS_ENABLE_430_COMPATIBILITY
-namespace irods::experimental
-{
-	struct genquery2
-	{
-	};
-
-	template <>
-	class log::logger_config<genquery2>
-	{
-		static constexpr const char* name = "genquery2";
-		inline static log::level level = log::level::info;
-		friend class logger<genquery2>;
-	}; // class logger_config<genquery2>
-} // namespace irods::experimental
-#else
-namespace irods::experimental::log
-{
-	struct genquery2
-	{
-	};
-
-	template <>
-	class logger_config<genquery2>
-	{
-		static constexpr const char* name = "genquery2";
-		inline static level level = level::info;
-		friend class logger<genquery2>;
-	}; // class logger_config<genquery2>
-} // namespace irods::experimental::log
-#endif // IRODS_ENABLE_430_COMPATIBILITY
 
 namespace
 {
@@ -67,12 +36,6 @@ namespace
 	using vertex_type        = boost::graph_traits<graph_type>::vertex_descriptor;
 	using vertices_size_type = boost::graph_traits<graph_type>::vertices_size_type;
 	using edge_type          = std::pair<vertex_type, vertex_type>;
-
-#ifdef IRODS_ENABLE_430_COMPATIBILITY
-	using log_gq             = irods::experimental::log::logger<irods::experimental::genquery2>;
-#else
-	using log_gq             = irods::experimental::log::logger<irods::experimental::log::genquery2>;
-#endif // IRODS_ENABLE_430_COMPATIBILITY
 	// clang-format on
 
 	struct gq_state
@@ -104,7 +67,7 @@ namespace
 	}; // struct gq_state
 
 	// clang-format off
-	constexpr auto table_names = std::to_array({
+	constexpr std::array<const char*, 20> table_names{{
 		"R_COLL_MAIN",                  // 0
 		"R_DATA_MAIN",                  // 1
 		"R_META_MAIN",                  // 2
@@ -125,7 +88,7 @@ namespace
 		"R_USER_SESSION_KEY",           // 17
 		"R_ZONE_MAIN",                  // 18
 		"R_QUOTA_MAIN",                 // 19
-	}); // table_names
+	}}; // table_names
 	// clang-format on
 
 	constexpr auto to_index(const std::string_view _table_name) -> std::size_t
@@ -141,7 +104,7 @@ namespace
 	// clang-format on
 
 	// clang-format off
-    constexpr auto table_edges = std::to_array<edge_type>({
+    constexpr std::array<edge_type, 20> table_edges{{
 		{to_index("R_COLL_MAIN"), to_index("R_DATA_MAIN")},                 // R_COLL_MAIN.coll_id = R_DATA_MAIN.coll_id
 		{to_index("R_COLL_MAIN"), to_index("R_OBJT_ACCESS")},               // R_COLL_MAIN.coll_id = R_OBJT_ACCESS.object_id
 		{to_index("R_COLL_MAIN"), to_index("R_OBJT_METAMAP")},              // R_COLL_MAIN.coll_id = R_OBJT_METAMAP.object_id
@@ -173,11 +136,11 @@ namespace
 		// TODO Handle R_USER_GROUP?
 		// TODO Handle R_QUOTA_MAIN
 		// TODO Handle R_QUOTA_USAGE
-    }); // table_edges
+	}}; // table_edges
 	// clang-format on
 
 	// clang-format off
-    constexpr auto table_joins = std::to_array<irods::experimental::genquery::edge_property>({
+    constexpr std::array<irods::experimental::genquery::edge_property, 20> table_joins{{
 		{"{}.coll_id = {}.coll_id", 0},
 		{"{}.coll_id = {}.object_id", 1},
 		{"{}.coll_id = {}.object_id", 2},
@@ -205,7 +168,7 @@ namespace
 		{"{}.user_id = {}.group_user_id", 17},
 		{"{}.user_id = {}.user_id", 18},
 		{"{}.user_id = {}.user_id", 19},
-    }); // table_joins
+    }}; // table_joins
 	// clang-format on
 
 	auto generate_table_alias(gq_state& _state) -> std::string
@@ -276,7 +239,7 @@ namespace
 			auto& t1_alias = _table_aliases.at(table_names[edge_def.first]);
 			t2_alias = _table_aliases.at(table_names[edge_def.second]);
 
-			return fmt::format(fmt::runtime(sql), t1_alias, t2_alias);
+			return fmt::format(sql, t1_alias, t2_alias);
 		};
 
 		// The order of inner joins may or may not matter depending on the design of your SQL database.
@@ -290,12 +253,12 @@ namespace
 		// Copy all entries from "_tables" into the list except the very first one.
 		// The first element is the table we are trying to join to. So, we consider that one handled.
 		std::vector<std::string> remaining{std::begin(_tables) + 1, std::end(_tables)};
-		log_gq::debug(fmt::format("remaining = [{}]", fmt::join(remaining, ", ")));
+		rodsLog(LOG_DEBUG, fmt::format("remaining = [{}]", fmt::join(remaining, ", ")).c_str());
 
 		std::vector<std::string> processed;
 		processed.reserve(_tables.size());
 		processed.push_back(std::string{_tables.front()});
-		log_gq::debug(fmt::format("processed = [{}]", fmt::join(processed, ", ")));
+		rodsLog(LOG_DEBUG, fmt::format("processed = [{}]", fmt::join(processed, ", ")).c_str());
 
 		for (decltype(_tables.size()) i = 0; i < _tables.size() - 1; ++i) {
 			const auto& last = processed.back();
@@ -541,12 +504,12 @@ namespace
 			std::string_view alias;
 
 			// clang-format off
-			if      (c.starts_with("META_D")) { alias = "mmd"; }
-			else if (c.starts_with("META_C")) { alias = "mmc"; }
-			else if (c.starts_with("META_R")) { alias = "mmr"; }
-			else if (c.starts_with("META_U")) { alias = "mmu"; }
-			else if (c == "DATA_RESC_HIER")   { alias = "cte_drh"; }
-			else                              { is_special_column = false; }
+			if      (boost::starts_with(c, "META_D")) { alias = "mmd"; }
+			else if (boost::starts_with(c, "META_C")) { alias = "mmc"; }
+			else if (boost::starts_with(c, "META_R")) { alias = "mmr"; }
+			else if (boost::starts_with(c, "META_U")) { alias = "mmu"; }
+			else if (c == "DATA_RESC_HIER")           { alias = "cte_drh"; }
+			else                                      { is_special_column = false; }
 			// clang-format on
 
 			if (!is_special_column) {
@@ -600,12 +563,12 @@ namespace
 			std::string_view alias;
 
 			// clang-format off
-			if      (se.column.starts_with("META_D")) { alias = "mmd"; }
-			else if (se.column.starts_with("META_C")) { alias = "mmc"; }
-			else if (se.column.starts_with("META_R")) { alias = "mmr"; }
-			else if (se.column.starts_with("META_U")) { alias = "mmu"; }
-			else if (se.column == "DATA_RESC_HIER")   { alias = "cte_drh"; }
-			else                                      { is_special_column = false; }
+			if      (boost::starts_with(se.column, "META_D")) { alias = "mmd"; }
+			else if (boost::starts_with(se.column, "META_C")) { alias = "mmc"; }
+			else if (boost::starts_with(se.column, "META_R")) { alias = "mmr"; }
+			else if (boost::starts_with(se.column, "META_U")) { alias = "mmu"; }
+			else if (se.column == "DATA_RESC_HIER")           { alias = "cte_drh"; }
+			else                                              { is_special_column = false; }
 			// clang-format on
 
 			if (!is_special_column) {
@@ -770,23 +733,23 @@ namespace irods::experimental::api::genquery
 
 		// The columns that trigger these branches rely on special joins and therefore must use pre-defined
 		// table aliases.
-		if (_column.name.starts_with("META_D")) {
+		if (boost::starts_with(_column.name, "META_D")) {
 			add_r_data_main = _state.add_joins_for_meta_data = true;
 			table_alias = "mmd";
 		}
-		else if (_column.name.starts_with("META_C")) {
+		else if (boost::starts_with(_column.name, "META_C")) {
 			add_r_coll_main = _state.add_joins_for_meta_coll = true;
 			table_alias = "mmc";
 		}
-		else if (_column.name.starts_with("META_R")) {
+		else if (boost::starts_with(_column.name, "META_R")) {
 			add_r_resc_main = _state.add_joins_for_meta_resc = true;
 			table_alias = "mmr";
 		}
-		else if (_column.name.starts_with("META_U")) {
+		else if (boost::starts_with(_column.name, "META_U")) {
 			add_r_user_main = _state.add_joins_for_meta_user = true;
 			table_alias = "mmu";
 		}
-		else if (_column.name.starts_with("DATA_ACCESS_")) {
+		else if (boost::starts_with(_column.name, "DATA_ACCESS_")) {
 			// There are three tables which are secretly joined to satisfy columns that trigger this branch.
 			// The columns require special hard-coded table aliases to work properly. This is because the joins
 			// cannot be worked out using only the graph.
@@ -803,7 +766,7 @@ namespace irods::experimental::api::genquery
 				table_alias = "pdoa"; // The alias for R_OBJT_ACCESS as it relates to data objects.
 			}
 		}
-		else if (_column.name.starts_with("COLL_ACCESS_")) {
+		else if (boost::starts_with(_column.name, "COLL_ACCESS_")) {
 			// There are three tables which are secretly joined to satisfy columns that trigger this branch.
 			// The columns require special hard-coded table aliases to work properly. This is because the joins
 			// cannot be worked out using only the graph.
@@ -1085,19 +1048,17 @@ namespace irods::experimental::api::genquery
 	auto to_sql(const select& _select, const options& _opts) -> std::tuple<std::string, std::vector<std::string>>
 	{
 		try {
-			log_gq::set_level(irods::experimental::log::get_level_from_config("genquery2"));
-
 			gq_state state;
 
-			log_gq::trace("### PHASE 1: Gather");
+			rodsLog(LOG_DEBUG8, "### PHASE 1: Gather");
 
 			const auto cols = to_sql(state, _select.selections);
-			log_gq::debug("SELECT COLUMNS = {}", cols);
+			rodsLog(LOG_DEBUG, "SELECT COLUMNS = %s", cols.c_str());
 
 			// Convert the conditions of the general query statement into SQL with prepared
 			// statement placeholders.
 			const auto conds = to_sql(state, _select.conditions);
-			log_gq::debug("CONDITIONS = {}", conds);
+			rodsLog(LOG_DEBUG, "CONDITIONS = %s", conds.c_str());
 
 			if (state.sql_tables.empty()) {
 				return {{}, {}};
@@ -1117,28 +1078,26 @@ namespace irods::experimental::api::genquery
 					alias = iter->second;
 				}
 
-				log_gq::debug("TABLE => {} [alias={}]", _t, alias);
+				rodsLog(LOG_DEBUG, fmt::format("TABLE => {} [alias={}]", _t, alias).c_str());
 			});
 
-			std::for_each(std::begin(state.columns_for_select_clause),
-			              std::end(state.columns_for_select_clause),
-			              [](auto&& _c) { log_gq::debug("COLUMN FOR SELECT CLAUSE => {}", _c); });
-
-			std::for_each(std::begin(state.columns_for_where_clause),
-			              std::end(state.columns_for_where_clause),
-			              [](auto&& _c) { log_gq::debug("COLUMN FOR WHERE CLAUSE => {}", _c); });
-
-			log_gq::debug("requires metadata table joins for R_DATA_MAIN? {}", state.add_joins_for_meta_data);
-			log_gq::debug("requires metadata table joins for R_COLL_MAIN? {}", state.add_joins_for_meta_coll);
-			log_gq::debug("requires metadata table joins for R_RESC_MAIN? {}", state.add_joins_for_meta_resc);
-			log_gq::debug("requires metadata table joins for R_USER_MAIN? {}", state.add_joins_for_meta_user);
-			log_gq::debug("requires table joins for DATA_RESC_HIER? {}", state.add_sql_for_data_resc_hier);
+			const auto to_bool = [](auto _v) { return _v ? "true" : "false"; };
+			rodsLog(
+				LOG_DEBUG, "Requires metadata table joins for R_DATA_MAIN? %s", to_bool(state.add_joins_for_meta_data));
+			rodsLog(
+				LOG_DEBUG, "Requires metadata table joins for R_COLL_MAIN? %s", to_bool(state.add_joins_for_meta_coll));
+			rodsLog(
+				LOG_DEBUG, "Requires metadata table joins for R_RESC_MAIN? %s", to_bool(state.add_joins_for_meta_resc));
+			rodsLog(
+				LOG_DEBUG, "Requires metadata table joins for R_USER_MAIN? %s", to_bool(state.add_joins_for_meta_user));
+			rodsLog(
+				LOG_DEBUG, "Requires table joins for DATA_RESC_HIER? %s", to_bool(state.add_sql_for_data_resc_hier));
 
 			//
 			// Generate SQL
 			//
 
-			log_gq::trace("### PHASE 2: SQL Generation");
+			rodsLog(LOG_DEBUG8, "### PHASE 2: SQL Generation");
 
 			auto graph = init_graph();
 
@@ -1164,12 +1123,12 @@ namespace irods::experimental::api::genquery
 			                ///////////////////
 			                fmt::arg("alias", state.table_aliases.at(std::string{state.sql_tables.front()})));
 
-			log_gq::debug("SELECT CLAUSE => {}", select_clause);
+			rodsLog(LOG_DEBUG, "SELECT CLAUSE => %s", select_clause.c_str());
 
 			const auto inner_joins = generate_inner_joins(graph, state.sql_tables, state.table_aliases);
 
 			std::for_each(std::begin(inner_joins), std::end(inner_joins), [](auto&& _j) {
-				log_gq::debug("INNER JOIN => {}", _j);
+				rodsLog(LOG_DEBUG, "INNER JOIN => %s", _j.c_str());
 			});
 
 			if (inner_joins.size() != state.sql_tables.size() - 1) {
@@ -1209,15 +1168,15 @@ namespace irods::experimental::api::genquery
 			}
 
 			std::for_each(std::begin(state.values), std::end(state.values), [](auto&& _j) {
-				log_gq::debug("BINDABLE VALUE => {}", _j);
+				rodsLog(LOG_DEBUG, "BINDABLE VALUE => %s", _j.c_str());
 			});
 
-			log_gq::debug("GENERATED SQL => [{}]", sql);
+			rodsLog(LOG_DEBUG, "GENERATED SQL => [%s]", sql.c_str());
 
 			return {sql, std::move(state.values)};
 		}
 		catch (const std::exception& e) {
-			log_gq::error(e.what());
+			rodsLog(LOG_ERROR, e.what());
 		}
 
 		return {{}, {}};

@@ -33,7 +33,7 @@ Once stable, the code will be merged into the iRODS server making it available w
 
 This project provides an API Plugin, a Rule Engine Plugin, and an iCommand upon successfully compiling it.
 
-This project only compiles against iRODS 4.3.0 and depends on the following:
+This project compiles against iRODS 4.2.11 and iRODS 4.2.12. It depends on the following:
 - irods-dev(el)
 - irods-runtime
 - irods-externals-boost
@@ -55,13 +55,6 @@ cmake /path/to/git/repo
 ninja package # Or, make -j package
 ```
 
-If you're compiling this project against a later version of iRODS 4.3, then you'll need to disable 4.3.0 compatibility. To do that, run the following:
-```bash
-cmake -DIRODS_ENABLE_430_COMPATIBILITY=NO /path/to/git/repo
-```
-
-So far, this implementation has only run on Ubuntu 20.04 and Almalinux 8.
-
 ## Usage
 
 ### API Plugin
@@ -70,10 +63,10 @@ The following interface is not stable and may change over time.
 
 - API Number: 1000001
 - Input:
-    - `query_string`: A GenQuery2 string
+    - `query_string`: A GenQuery2 string.
     - `zone`: The name of the zone to execute the query in. If null, the query is executed in the local zone.
-    - `sql_only`: An integer which instructs the API plugin to return SQL without executing it
-- Output: A JSON string (i.e. an array of array of strings)
+    - `sql_only`: An integer which instructs the API plugin to return SQL without executing it.
+- Output: A JSON string (i.e. an array of array of strings) or iRODS error code.
 
 ### Microservices
 
@@ -180,18 +173,7 @@ WHERE
 
 ## Logging
 
-You can instruct the parser to show additional information as it processes messages by adding the following line to the log_level stanza in server_config.json. For example:
-```javascript
-{
-    "log_level": {
-        // ... Other Log Categories ...
-
-        "genquery2": "trace",
-
-        // ... Other Log Categories ...
-    }
-}
-```
+You can instruct the parser to show additional information as it processes messages by increasing the log level. Documentation for adjusting the log level of the iRODS server can be found [here](https://docs.irods.org/4.2.12/system_overview/troubleshooting/).
 
 ## Available Columns
 

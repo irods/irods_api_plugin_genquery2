@@ -1,17 +1,17 @@
-cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
-
-option(IRODS_ENABLE_430_COMPATIBILITY "Enables compatibility with iRODS 4.3.0." YES) # Default to YES for community.
+cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 
 find_package(IRODS REQUIRED CONFIG)
+
+if (NOT ${IRODS_VERSION} STREQUAL "4.2.11" AND NOT ${IRODS_VERSION} STREQUAL "4.2.12")
+  message(FATAL_ERROR "Incompatible irods-dev package. Requires 4.2.11 or 4.2.12. Found ${IRODS_VERSION}.")
+endif()
 
 set(IRODS_PLUGIN_REVISION "0")
 set(IRODS_PLUGIN_VERSION "${IRODS_VERSION}.${IRODS_PLUGIN_REVISION}")
 
 set(IRODS_PACKAGE_REVISION "1")
 
-include(RequireOutOfSourceBuild)
-include(IrodsCXXCompiler)
-
+set(CMAKE_CXX_COMPILER ${IRODS_EXTERNALS_FULLPATH_CLANG}/bin/clang++)
 set(CMAKE_CXX_STANDARD ${IRODS_CXX_STANDARD})
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE) # TODO Disable
@@ -46,7 +46,6 @@ if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 # FIXME Why can't these be closer to the things that use them?
-find_package(nlohmann_json "3.6.1" REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED COMPONENTS Crypto SSL)
 
@@ -63,9 +62,6 @@ add_subdirectory(api_plugin)
 add_subdirectory(rule_engine)
 add_subdirectory(client)
 
-include(IrodsCPackCommon)
-include(IrodsCPackPlatform)
-
 set(IRODS_PACKAGE_NAME irods-experimental-api-plugin-genquery2)
 
 list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "${CPACK_PACKAGING_INSTALL_PREFIX}${IRODS_HOME_DIRECTORY}")
@@ -73,11 +69,14 @@ list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "${CPACK_PACKAGING_INS
 list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "${CPACK_PACKAGING_INSTALL_PREFIX}${IRODS_HOME_DIRECTORY}/scripts/irods")
 list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "${CPACK_PACKAGING_INSTALL_PREFIX}${IRODS_HOME_DIRECTORY}/scripts/irods/test")
 
+set(CPACK_PACKAGE_CONTACT "Renaissance Computing Institute <info@irods.org>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The integrated Rule-Oriented Data System")
+set(CPACK_PACKAGE_VENDOR "Renaissance Computing Institute <info@irods.org>")
+
 set(CPACK_PACKAGE_VERSION ${IRODS_PLUGIN_VERSION})
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_COMPONENTS_GROUPING IGNORE)
-#set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The integrated Rule-Oriented Data System") # Defined by IrodsCPackCommon
 
 set(CPACK_DEB_COMPONENT_INSTALL OFF)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
@@ -108,10 +107,9 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-ru
 set(CPACK_RPM_PACKAGE_NAME ${IRODS_PACKAGE_NAME})
 set(CPACK_RPM_PACKAGE_REQUIRES "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-runtime = ${IRODS_VERSION}")
 
-# Defined by IrodsCPackPlatform
-#if (NOT CPACK_GENERATOR)
-#  set(CPACK_GENERATOR ${IRODS_CPACK_GENERATOR} CACHE STRING "CPack generator to use, e.g. {DEB, RPM, TGZ}." FORCE)
-#  message(STATUS "Setting unspecified CPACK_GENERATOR to ${CPACK_GENERATOR}. This is the correct setting for normal builds.")
-#endif()
+if (NOT CPACK_GENERATOR)
+  set(CPACK_GENERATOR ${IRODS_CPACK_GENERATOR} CACHE STRING "CPack generator to use, e.g. {DEB, RPM, TGZ}." FORCE)
+  message(STATUS "Setting unspecified CPACK_GENERATOR to ${CPACK_GENERATOR}. This is the correct setting for normal builds.")
+endif()
 
 include(CPack)

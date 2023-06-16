@@ -15,7 +15,8 @@ auto print_usage_info() -> void;
 
 int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 {
-	set_ips_display_name("iquery (experimental)");
+	// Set display name for "ips".
+	setenv(SP_OPTION, "iquery (experimental)", /* overwrite */ 1);
 
 	namespace po = boost::program_options;
 
@@ -80,7 +81,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 			return 1;
 		}
 
-		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(fmt::runtime(sql));
+		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(sql);
 
 		std::free(sql);
 
