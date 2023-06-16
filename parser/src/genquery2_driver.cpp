@@ -11,6 +11,7 @@ namespace irods::experimental::genquery2
 		std::istringstream iss{_s};
 		lexer.switch_streams(&iss);
 
-		return yy::parser{*this}();
+		yy::parser p{*this};
+		return p.parse();
 	} // driver::parse
 } // namespace irods::experimental::genquery2

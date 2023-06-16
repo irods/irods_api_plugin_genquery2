@@ -7,7 +7,7 @@ add_executable(
 target_compile_definitions(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
-  #${IRODS_COMPILE_DEFINITIONS}
+  ${IRODS_COMPILE_DEFINITIONS}
   ${IRODS_COMPILE_DEFINITIONS_PRIVATE})
 
 target_include_directories(

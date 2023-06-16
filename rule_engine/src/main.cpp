@@ -26,8 +26,8 @@
 namespace
 {
 	// clang-format off
-	using log_rule_engine = irods::experimental::log::rule_engine;
-	using handler_type    = std::function<irods::error(std::list<boost::any>&, irods::callback&)>;
+	using log_re       = irods::experimental::log::rule_engine;
+	using handler_type = std::function<irods::error(std::list<boost::any>&, irods::callback&)>;
 	// clang-format on
 
 	struct genquery_context
@@ -52,13 +52,13 @@ namespace
 
 	auto genquery2_execute(std::list<boost::any>& _rule_arguments, irods::callback& _effect_handler) -> irods::error
 	{
-		log_rule_engine::info(__func__);
-		log_rule_engine::info("number of arguments = [{}]", _rule_arguments.size());
+		log_re::trace(__func__);
+		log_re::debug("Number of arguments = [{}]", _rule_arguments.size());
 
 		if (_rule_arguments.size() != 2) {
 			const auto msg =
 				fmt::format("Incorrect number of input arguments: expected 2, received {}", _rule_arguments.size());
-			log_rule_engine::info(msg);
+			log_re::error(msg);
 			return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 		}
 
@@ -74,8 +74,8 @@ namespace
 			char* results{};
 
 			if (const auto ec = irods::server_api_call(IRODS_APN_GENQUERY2, rei.rsComm, &input, &results); ec != 0) {
-				const auto msg = fmt::format("Error while executing GenQuery 2 query [error_code=[{}]].", ec);
-				log_rule_engine::error(msg);
+				const auto msg = fmt::format("Error while executing GenQuery2 query [error_code=[{}]].", ec);
+				log_re::error(msg);
 				return ERROR(ec, msg);
 			}
 
@@ -88,23 +88,23 @@ namespace
 			return SUCCESS();
 		}
 		catch (const irods::exception& e) {
-			log_rule_engine::error(e.client_display_what());
+			log_re::error(e.client_display_what());
 			return ERROR(e.code(), e.client_display_what());
 		}
 		catch (const std::exception& e) {
-			log_rule_engine::error(e.what());
+			log_re::error(e.what());
 			return ERROR(SYS_LIBRARY_ERROR, e.what());
 		}
 	} // genquery2_execute
 
 	auto genquery2_next_row(std::list<boost::any>& _rule_arguments, irods::callback&) -> irods::error
 	{
-		log_rule_engine::info(__func__);
+		log_re::trace(__func__);
 
 		if (_rule_arguments.size() != 1) {
 			const auto msg =
 				fmt::format("Incorrect number of input arguments: expected 1, received {}", _rule_arguments.size());
-			log_rule_engine::info(msg);
+			log_re::error(msg);
 			return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 		}
 
@@ -115,7 +115,7 @@ namespace
 			if (ctx_handle_index < 0 ||
 			    static_cast<decltype(gq2_context)::size_type>(ctx_handle_index) >= gq2_context.size()) {
 				constexpr const auto* msg = "Unknown context handle.";
-				log_rule_engine::info(msg);
+				log_re::error(msg);
 				return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 			}
 
@@ -123,13 +123,12 @@ namespace
 
 			if (ctx.current_row < static_cast<std::int32_t>(ctx.rows.size()) - 1) {
 				++ctx.current_row;
-				log_rule_engine::info(
+				log_re::trace(
 					"Incremented row position [{} => {}]. Returning 0.", ctx.current_row - 1, ctx.current_row);
 				return CODE(0);
 			}
 
-			log_rule_engine::info(
-				"Skipping incrementing of row position [current_row=[{}]]. Returning 1.", ctx.current_row);
+			log_re::trace("Skipping increment of row position [current_row=[{}]]. Returning 1.", ctx.current_row);
 
 			// We must return ERROR(stop_code, "") to trigger correct usage of genquery2_next_row().
 			// Otherwise, the NREP can loop forever. Ultimately, this means we aren't allowed to return
@@ -137,11 +136,11 @@ namespace
 			return ERROR(1, "");
 		}
 		catch (const irods::exception& e) {
-			log_rule_engine::error(e.client_display_what());
+			log_re::error(e.client_display_what());
 			return ERROR(e.code(), e.client_display_what());
 		}
 		catch (const std::exception& e) {
-			log_rule_engine::error(e.what());
+			log_re::error(e.what());
 			return ERROR(SYS_LIBRARY_ERROR, e.what());
 		}
 
@@ -150,12 +149,12 @@ namespace
 
 	auto genquery2_column(std::list<boost::any>& _rule_arguments, irods::callback&) -> irods::error
 	{
-		log_rule_engine::info(__func__);
+		log_re::trace(__func__);
 
 		if (_rule_arguments.size() != 3) {
 			const auto msg =
 				fmt::format("Incorrect number of input arguments: expected 3, received {}", _rule_arguments.size());
-			log_rule_engine::info(msg);
+			log_re::error(msg);
 			return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 		}
 
@@ -167,7 +166,7 @@ namespace
 			if (ctx_handle_index < 0 ||
 			    static_cast<decltype(gq2_context)::size_type>(ctx_handle_index) >= gq2_context.size()) {
 				constexpr const auto* msg = "Unknown context handle.";
-				log_rule_engine::info(msg);
+				log_re::error(msg);
 				return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 			}
 
@@ -176,7 +175,7 @@ namespace
 			const auto column_index = std::stoll(*boost::any_cast<std::string*>(*iter));
 
 			const auto& value = ctx.rows.at(ctx.current_row).at(column_index).get_ref<const std::string&>();
-			log_rule_engine::info("Column value = [{}]", value);
+			log_re::debug("Column value = [{}]", value);
 			iter = std::next(iter);
 			*boost::any_cast<std::string*>(*iter) =
 				ctx.rows.at(ctx.current_row).at(column_index).get_ref<const std::string&>();
@@ -184,11 +183,11 @@ namespace
 			return SUCCESS();
 		}
 		catch (const irods::exception& e) {
-			log_rule_engine::error(e.client_display_what());
+			log_re::error(e.client_display_what());
 			return ERROR(e.code(), e.client_display_what());
 		}
 		catch (const std::exception& e) {
-			log_rule_engine::error(e.what());
+			log_re::error(e.what());
 			return ERROR(SYS_LIBRARY_ERROR, e.what());
 		}
 
@@ -197,25 +196,25 @@ namespace
 
 	auto genquery2_destroy(std::list<boost::any>& _rule_arguments, irods::callback&) -> irods::error
 	{
-		log_rule_engine::info(__func__);
+		log_re::trace(__func__);
 
 		if (_rule_arguments.size() != 1) {
 			const auto msg =
 				fmt::format("Incorrect number of input arguments: expected 1, received {}", _rule_arguments.size());
-			log_rule_engine::info(msg);
+			log_re::error(msg);
 			return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 		}
 
 		try {
 			auto iter = std::begin(_rule_arguments);
 			const auto* ctx_handle = boost::any_cast<std::string*>(*iter);
-			log_rule_engine::info("ctx_handle = [{}]", *ctx_handle); // FIXME It's empty in the PREP! :-(
+			log_re::trace("ctx_handle = [{}]", *ctx_handle);
 			const auto ctx_handle_index = std::stoll(*ctx_handle);
 
 			if (ctx_handle_index < 0 ||
 			    static_cast<decltype(gq2_context)::size_type>(ctx_handle_index) >= gq2_context.size()) {
 				constexpr const auto* msg = "Unknown context handle.";
-				log_rule_engine::info(msg);
+				log_re::error(msg);
 				return ERROR(SYS_INVALID_INPUT_PARAM, msg);
 			}
 
@@ -226,11 +225,11 @@ namespace
 			return SUCCESS();
 		}
 		catch (const irods::exception& e) {
-			log_rule_engine::error(e.client_display_what());
+			log_re::error(e.client_display_what());
 			return ERROR(e.code(), e.client_display_what());
 		}
 		catch (const std::exception& e) {
-			log_rule_engine::error(e.what());
+			log_re::error(e.what());
 			return ERROR(SYS_LIBRARY_ERROR, e.what());
 		}
 
@@ -283,7 +282,8 @@ namespace
 	               std::list<boost::any>& _rule_arguments,
 	               irods::callback _effect_handler) -> irods::error
 	{
-		log_rule_engine::info(__func__);
+		log_re::trace(__func__);
+
 		if (const auto iter = handlers.find(_rule_name); iter != std::end(handlers)) {
 			return (iter->second)(_rule_arguments, _effect_handler);
 		}
@@ -296,7 +296,7 @@ namespace
 	                         MsParamArray* _ms_param_array,
 	                         irods::callback _effect_handler) -> irods::error
 	{
-		log_rule_engine::debug("_rule_text = [{}]", _rule_text);
+		log_re::debug("_rule_text = [{}]", _rule_text);
 
 		// irule <text>
 		if (_rule_text.find("@external rule {") != std::string::npos) {
@@ -309,7 +309,7 @@ namespace
 			_rule_text = _rule_text.substr(start, _rule_text.rfind(" }") - start);
 		}
 
-		log_rule_engine::info("_rule_text = [{}]", std::string{_rule_text});
+		log_re::debug("_rule_text = [{}]", std::string{_rule_text});
 
 		/*
 		    {
@@ -362,7 +362,7 @@ namespace
 			return ERROR(INVALID_OPERATION, fmt::format("Invalid operation [{}]", op));
 		}
 		catch (const json::exception& e) {
-			log_rule_engine::error(e.what());
+			log_re::error(e.what());
 			return ERROR(SYS_INVALID_INPUT_PARAM, fmt::format("Could not parse rule text into JSON object"));
 		}
 	}  // exec_rule_text_impl
