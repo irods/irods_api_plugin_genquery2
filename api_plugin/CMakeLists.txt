@@ -24,7 +24,7 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
   target_compile_definitions(
     ${IRODS_MODULE_NAME}
     PRIVATE
-    #${IRODS_COMPILE_DEFINITIONS} # TODO Is this needed?
+    ${IRODS_COMPILE_DEFINITIONS}
     ${IRODS_COMPILE_DEFINITIONS_PRIVATE})
   
   target_include_directories(

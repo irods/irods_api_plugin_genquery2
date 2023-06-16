@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
 
 option(IRODS_ENABLE_430_COMPATIBILITY "Enables compatibility with iRODS 4.3.0." YES) # Default to YES for community.
 
+if (IRODS_ENABLE_430_COMPATIBILITY)
+  message(STATUS "Configuring project with iRODS 4.3.0 compatibility enabled.")
+endif()
+
 find_package(IRODS REQUIRED CONFIG)
 
 set(IRODS_PLUGIN_REVISION "0")
@@ -77,7 +81,6 @@ set(CPACK_PACKAGE_VERSION ${IRODS_PLUGIN_VERSION})
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_COMPONENTS_GROUPING IGNORE)
-#set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The integrated Rule-Oriented Data System") # Defined by IrodsCPackCommon
 
 set(CPACK_DEB_COMPONENT_INSTALL OFF)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
@@ -107,11 +110,5 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-ru
 
 set(CPACK_RPM_PACKAGE_NAME ${IRODS_PACKAGE_NAME})
 set(CPACK_RPM_PACKAGE_REQUIRES "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-runtime = ${IRODS_VERSION}")
-
-# Defined by IrodsCPackPlatform
-#if (NOT CPACK_GENERATOR)
-#  set(CPACK_GENERATOR ${IRODS_CPACK_GENERATOR} CACHE STRING "CPack generator to use, e.g. {DEB, RPM, TGZ}." FORCE)
-#  message(STATUS "Setting unspecified CPACK_GENERATOR to ${CPACK_GENERATOR}. This is the correct setting for normal builds.")
-#endif()
 
 include(CPack)

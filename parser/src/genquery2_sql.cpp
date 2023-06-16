@@ -1120,19 +1120,11 @@ namespace irods::experimental::api::genquery
 				log_gq::debug("TABLE => {} [alias={}]", _t, alias);
 			});
 
-			std::for_each(std::begin(state.columns_for_select_clause),
-			              std::end(state.columns_for_select_clause),
-			              [](auto&& _c) { log_gq::debug("COLUMN FOR SELECT CLAUSE => {}", _c); });
-
-			std::for_each(std::begin(state.columns_for_where_clause),
-			              std::end(state.columns_for_where_clause),
-			              [](auto&& _c) { log_gq::debug("COLUMN FOR WHERE CLAUSE => {}", _c); });
-
-			log_gq::debug("requires metadata table joins for R_DATA_MAIN? {}", state.add_joins_for_meta_data);
-			log_gq::debug("requires metadata table joins for R_COLL_MAIN? {}", state.add_joins_for_meta_coll);
-			log_gq::debug("requires metadata table joins for R_RESC_MAIN? {}", state.add_joins_for_meta_resc);
-			log_gq::debug("requires metadata table joins for R_USER_MAIN? {}", state.add_joins_for_meta_user);
-			log_gq::debug("requires table joins for DATA_RESC_HIER? {}", state.add_sql_for_data_resc_hier);
+			log_gq::debug("Requires metadata table joins for R_DATA_MAIN? {}", state.add_joins_for_meta_data);
+			log_gq::debug("Requires metadata table joins for R_COLL_MAIN? {}", state.add_joins_for_meta_coll);
+			log_gq::debug("Requires metadata table joins for R_RESC_MAIN? {}", state.add_joins_for_meta_resc);
+			log_gq::debug("Requires metadata table joins for R_USER_MAIN? {}", state.add_joins_for_meta_user);
+			log_gq::debug("Requires table joins for DATA_RESC_HIER? {}", state.add_sql_for_data_resc_hier);
 
 			//
 			// Generate SQL

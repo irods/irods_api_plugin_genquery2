@@ -12,16 +12,12 @@ extern "C" auto plugin_factory(
 	[[maybe_unused]] const std::string& _context) -> irods::api_entry*
 {
 #ifdef RODS_SERVER
-	// If your API endpoint is designed to be invocable by non-admins, then you need to
-	// add the API plugin number to the allowlist.
 #  ifdef IRODS_ENABLE_430_COMPATIBILITY
 	irods::client_api_allowlist::instance().add(IRODS_APN_GENQUERY2);
 #  else
 	irods::client_api_allowlist::add(IRODS_APN_GENQUERY2);
 #  endif // IRODS_ENABLE_430_COMPATIBILITY
 #endif // RODS_SERVER
-
-	// TODO We need to be able to add API plugin numbers to the API plugin number map.
 
 	// clang-format off
 	irods::apidef_t def{
@@ -47,15 +43,13 @@ extern "C" auto plugin_factory(
 			if (q->query_string) { std::free(q->query_string); }
 			if (q->zone)         { std::free(q->zone); }
 		},
-		irods::clearOutStruct_noop, // TODO This blocks support for 4.2.
+		irods::clearOutStruct_noop,
 #endif // IRODS_ENABLE_430_COMPATIBILITY
 		fn_ptr
 	};
 	// clang-format on
 
 	auto* api = new irods::api_entry{def}; // NOLINT(cppcoreguidelines-owning-memory)
-
-	// TODO Demonstrate how to add new serialization types.
 
 	api->in_pack_key = "GenQuery2_Input_PI";
 	api->in_pack_value = GenQuery2_Input_PI;

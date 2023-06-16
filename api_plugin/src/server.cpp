@@ -1,24 +1,22 @@
 #include "irods/plugins/api/private/genquery2_common.hpp"
 #include "irods/plugins/api/genquery2_common.h" // For API plugin number.
 
+#include "irods/genquery2_driver.hpp"
+#include "irods/genquery2_sql.hpp"
+
 #include <irods/apiHandler.hpp>
-#include <irods/catalog.hpp>           // Requires linking against libnanodbc.so
-#include <irods/catalog_utilities.hpp> // Requires linking against libnanodbc.so
+#include <irods/catalog.hpp> // Requires linking against libnanodbc.so
 #include <irods/irods_logger.hpp>
 #include <irods/irods_rs_comm_query.hpp>
-//#include <irods/irods_re_serialization.hpp> // For custom data types that can be used in the NREP.
 #include <irods/irods_server_properties.hpp>
 #include <irods/procApiRequest.h>
 #include <irods/rodsConnect.h>
 #include <irods/rodsDef.h>
 #include <irods/rodsErrorTable.h>
 
-#include "irods/genquery2_driver.hpp"
-#include "irods/genquery2_sql.hpp"
-
 #include <fmt/format.h>
-#include <nlohmann/json.hpp>
 #include <nanodbc/nanodbc.h>
+#include <nlohmann/json.hpp>
 
 #include <cstring> // For strdup.
 
@@ -56,11 +54,11 @@ namespace
 		// If the client did not provide a zone, getAndConnRcatHost() will operate as if the
 		// client provided the local zone's name.
 		if (_input->zone) {
-			log_api::info(
-				"GenQuery 2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
+			log_api::trace(
+				"GenQuery2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
 		}
 		else {
-			log_api::info("GenQuery 2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
+			log_api::trace("GenQuery2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
 		}
 
 		rodsServerHost* host_info{};
@@ -110,7 +108,7 @@ namespace
 #else
 				const auto handle = irods::server_properties::instance().map();
 				const auto& config = handle.get_json();
-#endif
+#endif // IRODS_ENABLE_430_COMPATIBILITY
 				const auto& db = config.at(json::json_pointer{"/plugin_configuration/database"});
 				opts.database = std::begin(db).key();
 			}
@@ -128,7 +126,7 @@ namespace
 
 			const auto [sql, values] = gq::to_sql(driver.select, opts);
 
-			log_api::info("Returning to client: [{}]", sql);
+			log_api::trace("Returning to client: [{}]", sql);
 
 			if (1 == _input->sql_only) {
 				*_output = strdup(sql.c_str());

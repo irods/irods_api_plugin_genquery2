@@ -70,10 +70,10 @@ The following interface is not stable and may change over time.
 
 - API Number: 1000001
 - Input:
-    - `query_string`: A GenQuery2 string
+    - `query_string`: A GenQuery2 string.
     - `zone`: The name of the zone to execute the query in. If null, the query is executed in the local zone.
-    - `sql_only`: An integer which instructs the API plugin to return SQL without executing it
-- Output: A JSON string (i.e. an array of array of strings)
+    - `sql_only`: An integer which instructs the API plugin to return SQL without executing it.
+- Output: A JSON string (i.e. an array of array of strings) or iRODS error code.
 
 ### Microservices
 
