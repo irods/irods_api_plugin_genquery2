@@ -88,9 +88,8 @@ namespace
 		}
 		else {
 #ifdef IRODS_ENABLE_42X_COMPATIBILITY
-			rodsLog(LOG_DEBUG8,
-			        "GenQuery2 API endpoint received: query_string=[%s], zone=[nullptr]",
-			        _input->query_string);
+			rodsLog(
+				LOG_DEBUG8, "GenQuery2 API endpoint received: query_string=[%s], zone=[nullptr]", _input->query_string);
 #else
 			log_api::trace("GenQuery2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
 #endif // IRODS_ENABLE_42X_COMPATIBILITY
