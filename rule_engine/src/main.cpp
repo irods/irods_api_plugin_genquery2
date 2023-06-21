@@ -91,7 +91,7 @@ namespace
 			char* results{};
 
 			if (const auto ec = irods::server_api_call(IRODS_APN_GENQUERY2, rei.rsComm, &input, &results); ec != 0) {
-				const auto msg = fmt::format("Error while executing GenQuery 2 query [error_code=[{}]].", ec);
+				const auto msg = fmt::format("Error while executing GenQuery2 query [error_code=[{}]].", ec);
 #ifdef IRODS_ENABLE_42X_COMPATIBILITY
 				rodsLog(LOG_ERROR, msg.c_str());
 #else

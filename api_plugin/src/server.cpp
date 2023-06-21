@@ -16,8 +16,7 @@
 #  include <irods/rodsLog.h>
 #  include <json.hpp>
 #else
-#  include <irods/catalog.hpp>           // Requires linking against libnanodbc.so
-#  include <irods/catalog_utilities.hpp> // Requires linking against libnanodbc.so. Probably not needed.
+#  include <irods/catalog.hpp> // Requires linking against libnanodbc.so
 #  include <irods/irods_logger.hpp>
 #  include <nlohmann/json.hpp>
 #endif // IRODS_ENABLE_42X_COMPATIBILITY
@@ -79,21 +78,21 @@ namespace
 		if (_input->zone) {
 #ifdef IRODS_ENABLE_42X_COMPATIBILITY
 			rodsLog(LOG_DEBUG8,
-			        "GenQuery 2 API endpoint received: query_string=[%s], zone=[%s]",
+			        "GenQuery2 API endpoint received: query_string=[%s], zone=[%s]",
 			        _input->query_string,
 			        _input->zone);
 #else
 			log_api::trace(
-				"GenQuery 2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
+				"GenQuery2 API endpoint received: query_string=[{}], zone=[{}]", _input->query_string, _input->zone);
 #endif // IRODS_ENABLE_42X_COMPATIBILITY
 		}
 		else {
 #ifdef IRODS_ENABLE_42X_COMPATIBILITY
 			rodsLog(LOG_DEBUG8,
-			        "GenQuery 2 API endpoint received: query_string=[%s], zone=[nullptr]",
+			        "GenQuery2 API endpoint received: query_string=[%s], zone=[nullptr]",
 			        _input->query_string);
 #else
-			log_api::trace("GenQuery 2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
+			log_api::trace("GenQuery2 API endpoint received: query_string=[{}], zone=[nullptr]", _input->query_string);
 #endif // IRODS_ENABLE_42X_COMPATIBILITY
 		}
 
