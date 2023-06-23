@@ -1,6 +1,7 @@
 #include "irods/plugins/api/genquery2_common.h"
 
 #include <irods/client_connection.hpp>
+#include <irods/irods_at_scope_exit.hpp>
 #include <irods/irods_exception.hpp>
 #include <irods/procApiRequest.h>
 #include <irods/rcMisc.h>     // For set_ips_display_name()
@@ -67,6 +68,11 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 
 		irods::experimental::client_connection conn;
 		char* sql{};
+		irods::at_scope_exit_unsafe free_sql{[&sql] {
+			if (sql) {
+				std::free(sql);
+			}
+		}};
 
 		const auto ec =
 			procApiRequest(static_cast<RcComm*>(conn),
@@ -81,9 +87,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 			return 1;
 		}
 
-		(1 == input.sql_only) ? fmt::print("{}\n", sql) : fmt::print(sql);
-
-		std::free(sql);
+		fmt::print("{}\n", sql);
 
 		return 0;
 	}
