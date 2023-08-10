@@ -55,7 +55,7 @@ namespace irods::experimental::api::genquery
 		{"RESC_MODIFY_TIME", {"R_RESC_MAIN", "modify_ts "}},
 		{"RESC_CHILDREN", {"R_RESC_MAIN", "resc_children "}},
 		{"RESC_CONTEXT", {"R_RESC_MAIN", "resc_context "}},
-		{"RESC_PARENT", {"R_RESC_MAIN", "resc_parent "}},
+		{"RESC_PARENT_ID", {"R_RESC_MAIN", "resc_parent "}},
 		{"RESC_PARENT_CONTEXT", {"R_RESC_MAIN", "resc_parent_context"}},
 
 		{"DATA_ID", {"R_DATA_MAIN", "data_id"}},
