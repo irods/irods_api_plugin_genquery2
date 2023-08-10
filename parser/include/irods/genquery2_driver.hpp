@@ -27,8 +27,13 @@ namespace irods::experimental::genquery2
 
 		auto parse(const std::string& _s) -> int;
 
+		// Holds an AST-like representation of a GenQuery2 string.
 		irods::experimental::api::genquery::select select;
+
+		// The Flex scanner implementation.
 		scanner lexer;
+
+		// Holds the current location of the parser.
 		yy::location location;
 
 		// Used by the lexer to capture string literals.
