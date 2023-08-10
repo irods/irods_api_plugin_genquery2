@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 
 #include <cstdlib>
+#include <iostream>
 
 auto print_usage_info() -> void;
 
@@ -24,7 +25,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 
 	// clang-format off
 	desc.add_options()
-		("query_string", po::value<std::string>(), "")
+		("query_string", po::value<std::string>()->default_value("-"), "")
 		("sql-only", po::bool_switch(), "")
 		("zone,z", po::value<std::string>(), "")
 		("help,h", "");
@@ -53,6 +54,18 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 		}
 
 		auto query_string = vm["query_string"].as<std::string>();
+
+		// Read from stdin.
+		if ("-" == query_string) {
+			query_string.clear();
+			std::getline(std::cin, query_string);
+		}
+
+		if (query_string.empty()) {
+			fmt::print(stderr, "error: Missing QUERY_STRING\n");
+			return 1;
+		}
+
 		input.query_string = query_string.data();
 
 		std::string zone;
@@ -110,6 +123,11 @@ Queries the iRODS Catalog using GenQuery2.
 
 QUERY_STRING is expected to be a string matching the GenQuery2 syntax. Failing
 to meet this requirement will result in an error.
+
+If QUERY_STRING is a hyphen (-) or is empty, input is read from stdin. Input
+taken via stdin will be viewed as the QUERY_STRING to execute. For example:
+
+    echo select COLL_NAME, DATA_NAME | iquery
 
 Mandatory arguments to long options are mandatory for short options too.
 
