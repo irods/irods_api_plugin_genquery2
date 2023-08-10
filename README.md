@@ -368,3 +368,7 @@ def list_all_data_objects(rule_args, callback, rei):
                                                                                             
     callback.genquery2_destroy(handle)
 ```
+
+### How do I embed single quotes within a string literal?
+
+To embed a single quote character within a string literal, write two adjacent single quotes. For example, `'What''s the current time?'`.
