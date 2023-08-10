@@ -18,6 +18,8 @@
     #define YY_USER_ACTION loc.columns(yyleng);
 %}
 
+%x ss_string_literal
+
 %%
 
 %{
@@ -26,10 +28,19 @@
 
     // Code run each time yylex() is called.
     loc.step();
+
+    // A handy shortcut to the object used for capturing string literals.
+    auto& string_literal = drv.string_literal;
 %}
 
+'                      { BEGIN(ss_string_literal); string_literal.clear(); }
+<ss_string_literal>{
+    "''"               { string_literal += '\''; }
+    '                  { BEGIN(INITIAL); return yy::parser::make_STRING_LITERAL(string_literal, loc); }
+    .                  { string_literal.append(1, *yytext); }
+    <<EOF>>            { throw yy::parser::syntax_error{loc, fmt::format("missing closing single quote: [{}]", string_literal)}; }
+}
 [ \t\n]                ;
-'(''|[^'])*'           { yytext[yyleng - 1] = '\0'; ++yytext; return yy::parser::make_STRING_LITERAL(yytext, loc); }
 (?i:select)            return yy::parser::make_SELECT(loc);
 (?i:where)             return yy::parser::make_WHERE(loc);
 (?i:like)              return yy::parser::make_LIKE(loc);

@@ -30,6 +30,10 @@ namespace irods::experimental::genquery2
 		irods::experimental::api::genquery::select select;
 		scanner lexer;
 		yy::location location;
+
+		// Used by the lexer to capture string literals.
+		// This aids in handling escape sequences.
+		std::string string_literal;
 	}; // class driver
 } // namespace irods::experimental::genquery2
 
