@@ -14,6 +14,7 @@ target_include_directories(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/api_plugin/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/parser/include>
   ${IRODS_INCLUDE_DIRS}
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
   ${IRODS_EXTERNALS_FULLPATH_JSON}/include
