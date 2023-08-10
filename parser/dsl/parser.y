@@ -239,7 +239,7 @@ list_of_identifiers:
 
 auto yy::parser::error(const yy::location& _loc, const std::string& _msg) -> void
 {
-    throw std::invalid_argument{fmt::format("{} @ {}", _msg, _loc.begin.column)};
+    throw std::invalid_argument{fmt::format("{} at position {}", _msg, _loc.begin.column)};
 } // gq::parser::error
 
 auto yylex(irods::experimental::genquery2::driver& drv) -> yy::parser::symbol_type

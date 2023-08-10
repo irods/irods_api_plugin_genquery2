@@ -39,6 +39,7 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
     irods_plugin_dependencies
     irods_common
     irods_${IRODS_MODULE_VARIANT}
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
     ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
     ${IRODS_EXTERNALS_FULLPATH_NANODBC}/lib/libnanodbc.so)
 
