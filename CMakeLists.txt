@@ -30,7 +30,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE_INIT "-Wl,--gc-sections -Wl,-z,combreloc")
 
 project(
   irods_genquery2
-  VERSION "${IRODS_VERSION}"
+  VERSION "${IRODS_PLUGIN_VERSION}"
   LANGUAGES CXX)
 
 set(CMAKE_SKIP_BUILD_RPATH OFF)
