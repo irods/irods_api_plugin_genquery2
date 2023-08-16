@@ -48,5 +48,5 @@ target_include_directories(
 
 target_link_libraries(
   ${IRODS_PARSER_NAME}
-  PRIVATE
+  PUBLIC
   nlohmann_json::nlohmann_json)

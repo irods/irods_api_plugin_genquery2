@@ -1,5 +1,7 @@
 set(IRODS_MODULE_NAME_PREFIX irods_genquery2)
 
+include(ObjectTargetHelpers)
+
 foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
   set(IRODS_MODULE_NAME ${IRODS_MODULE_NAME_PREFIX}_${IRODS_MODULE_VARIANT})
 
@@ -62,10 +64,10 @@ target_compile_definitions(
   ENABLE_RE
   IRODS_ENABLE_SYSLOG)
 
-target_link_libraries(
+target_link_objects(
   ${IRODS_MODULE_NAME_PREFIX}_server
   PRIVATE
-  $<TARGET_OBJECTS:irods_genquery2_parser>)
+  irods_genquery2_parser)
 
 install(
   FILES
