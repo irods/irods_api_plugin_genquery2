@@ -43,16 +43,20 @@ if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting unspecified CMAKE_BUILD_TYPE to '${CMAKE_BUILD_TYPE}'. This is the correct setting for normal builds.")
 endif()
 
-# FIXME Why can't these be closer to the things that use them?
+set(IRODS_BUILD_WITH_WERROR OFF CACHE BOOL "Choose whether to compile with -Werror.")
+
 find_package(nlohmann_json "3.6.1" REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED COMPONENTS Crypto SSL)
+
+if (IRODS_BUILD_WITH_WERROR)
+  add_compile_options(-Werror)
+endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fpermissive>)
 endif()
 
-#add_compile_options(-Wall -Wextra -Werror -Wconversion -Wshadow -Wpedantic)
 add_compile_options(-Wall -Wextra -Wconversion -Wshadow -Wpedantic)
 
 add_subdirectory(parser)
