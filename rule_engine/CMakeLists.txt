@@ -15,7 +15,7 @@ target_compile_definitions(
 target_include_directories(
   ${IRODS_RULE_ENGINE_PLUGIN_NAME}
   PRIVATE
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/api_plugin/include>
+  $<BUILD_INTERFACE:${CMAKE_IRODS_PLUGIN_SOURCE_DIR}/api_plugin/include>
   ${IRODS_INCLUDE_DIRS}
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
   ${IRODS_EXTERNALS_FULLPATH_FMT}/include

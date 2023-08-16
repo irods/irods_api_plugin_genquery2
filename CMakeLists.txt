@@ -59,6 +59,9 @@ endif()
 
 add_compile_options(-Wall -Wextra -Wconversion -Wshadow -Wpedantic)
 
+set(CMAKE_IRODS_PLUGIN_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CMAKE_IRODS_PLUGIN_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
 add_subdirectory(parser)
 add_subdirectory(api_plugin)
 #add_subdirectory(microservice)
