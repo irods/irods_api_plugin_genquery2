@@ -27,18 +27,12 @@ set(CMAKE_MODULE_LINKER_FLAGS_INIT "-rdynamic -Wl,--export-dynamic -Wl,--enable-
 set(CMAKE_MODULE_LINKER_FLAGS_RELEASE_INIT "-Wl,--gc-sections -Wl,-z,combreloc")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "-rdynamic -Wl,--export-dynamic -Wl,--enable-new-dtags -Wl,--as-needed -Wl,-z,defs")
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE_INIT "-Wl,--gc-sections -Wl,-z,combreloc")
+include(IrodsRunpathDefaults)
 
 project(
   irods_genquery2
   VERSION "${IRODS_PLUGIN_VERSION}"
   LANGUAGES CXX)
-
-set(CMAKE_SKIP_BUILD_RPATH OFF)
-set(CMAKE_SKIP_INSTALL_RPATH OFF)
-set(CMAKE_SKIP_RPATH OFF)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
-set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 
 include(${IRODS_TARGETS_PATH})
 include(GNUInstallDirs)
