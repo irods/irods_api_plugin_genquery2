@@ -5,16 +5,6 @@ add_library(
   MODULE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_compile_options(
-  ${IRODS_RULE_ENGINE_PLUGIN_NAME}
-  PRIVATE
-  -Wall
-  -Wextra
-  #-Werror
-  -Wconversion
-  -Wshadow
-  -Wpedantic)
-
 target_compile_definitions(
   ${IRODS_RULE_ENGINE_PLUGIN_NAME}
   PRIVATE
