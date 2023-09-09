@@ -33,7 +33,7 @@ Once stable, the code will be merged into the iRODS server making it available w
 
 This project provides an API Plugin, a Rule Engine Plugin, and an iCommand upon successfully compiling it.
 
-This project only compiles against iRODS 4.3.0 and depends on the following:
+### Dependencies
 - irods-dev(el)
 - irods-runtime
 - irods-externals-boost
