@@ -19,7 +19,7 @@
 
 %{
     // Code run each time a pattern is matched.
-    #define YY_USER_ACTION loc.columns(yyleng);
+    #define YY_USER_ACTION loc.columns(YYLeng());
 %}
 
 %x ss_string_literal
@@ -99,10 +99,10 @@
 ","                    return yy::parser::make_COMMA(loc);
 "("                    return yy::parser::make_PAREN_OPEN(loc);
 ")"                    return yy::parser::make_PAREN_CLOSE(loc);
-[a-zA-Z][a-zA-Z0-9_]*  return yy::parser::make_IDENTIFIER(yytext, loc);
-[0-9]+                 return yy::parser::make_POSITIVE_INTEGER(yytext, loc);
--?[0-9]+               return yy::parser::make_INTEGER(yytext, loc);
-.                      throw yy::parser::syntax_error{loc, fmt::format("invalid character: {}", yytext)};
+[a-zA-Z][a-zA-Z0-9_]*  return yy::parser::make_IDENTIFIER(YYText(), loc);
+[0-9]+                 return yy::parser::make_POSITIVE_INTEGER(YYText(), loc);
+-?[0-9]+               return yy::parser::make_INTEGER(YYText(), loc);
+.                      throw yy::parser::syntax_error{loc, fmt::format("invalid character: {}", YYText())};
 <<EOF>>                return yy::parser::make_END_OF_INPUT(loc);
 
 %%
