@@ -2,6 +2,10 @@
     #include "irods/genquery2_driver.hpp"
 
     #include <fmt/format.h>
+
+    #include <charconv>
+    #include <cstdint>
+    #include <string>
 %}
 
 %option c++ warn nodefault noyywrap nounput noinput batch
@@ -36,8 +40,21 @@
 '                      { BEGIN(ss_string_literal); string_literal.clear(); }
 <ss_string_literal>{
     "''"               { string_literal += '\''; }
+    \\x[0-9A-Fa-f]{2}  {
+                            std::uint8_t value;
+                            const auto err = std::from_chars(YYText() + 2, YYText() + 4, value, 16);
+
+                            if (err.ec == std::errc::invalid_argument) {
+                                throw yy::parser::syntax_error{loc, fmt::format("invalid hex value: [{}]", YYText())};
+                            }
+                            else if (err.ec == std::errc::result_out_of_range) {
+                                throw yy::parser::syntax_error{loc, fmt::format("hex value cannot be represented: [{}]", YYText())};
+                            }
+
+                            string_literal.push_back(value);
+                       }
     '                  { BEGIN(INITIAL); return yy::parser::make_STRING_LITERAL(string_literal, loc); }
-    .                  { string_literal.append(1, *yytext); }
+    .                  { string_literal += YYText(); }
     <<EOF>>            { throw yy::parser::syntax_error{loc, fmt::format("missing closing single quote: [{}]", string_literal)}; }
 }
 [ \t\n]                ;
