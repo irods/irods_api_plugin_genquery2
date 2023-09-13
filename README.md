@@ -22,6 +22,8 @@ Once stable, the code will be merged into the iRODS server making it available w
 - Operators: =, !=, <, <=, >, >=, LIKE, BETWEEN, IS [NOT] NULL
 - SQL keywords are case-insensitive
 - Federation is supported
+- Escaping of single quotes
+- Bytes encoded as hexadecimal
 
 ## Limitations (for now)
 
@@ -355,4 +357,14 @@ def list_all_data_objects(rule_args, callback, rei):
 
 ### How do I embed single quotes within a string literal?
 
-To embed a single quote character within a string literal, write two adjacent single quotes. For example, `'What''s the current time?'`.
+To embed a single quote character within a string literal, write two adjacent single quotes.
+
+For example, `'John''s file.txt'`.
+
+### How do I embed a hexadecimal byte within a string literal?
+
+To embed a hexadecimal byte within a string literal, use `\xNN`, where **NN** is the hexadecimal value of the byte.
+
+For example, if the parser is passed `'Hello, GenQuery2\x21'`, it will expand the string to `'Hello, GenQuery2!'`. This happens before any SQL is executed.
+
+`\x` can only represent a single byte.
