@@ -23,13 +23,6 @@ add_library(
 set_target_properties(${IRODS_PARSER_NAME} PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE TRUE)
 set_target_properties(${IRODS_PARSER_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-if (IRODS_ENABLE_430_COMPATIBILITY)
-  target_compile_definitions(
-    ${IRODS_PARSER_NAME}
-    PRIVATE
-    IRODS_ENABLE_430_COMPATIBILITY)
-endif()
-
 target_compile_definitions(
   ${IRODS_PARSER_NAME}
   PRIVATE

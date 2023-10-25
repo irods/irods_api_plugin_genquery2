@@ -3,6 +3,7 @@
 
 #include <irods/apiHandler.hpp>
 #include <irods/client_api_allowlist.hpp>
+#include <irods/irods_version.h>
 #include <irods/rcMisc.h>
 #include <irods/rodsPackInstruct.h>
 
@@ -12,11 +13,11 @@ extern "C" auto plugin_factory(
 	[[maybe_unused]] const std::string& _context) -> irods::api_entry*
 {
 #ifdef RODS_SERVER
-#  ifdef IRODS_ENABLE_430_COMPATIBILITY
+#  if IRODS_VERSION_INTEGER < 4003001
 	irods::client_api_allowlist::instance().add(IRODS_APN_GENQUERY2);
 #  else
 	irods::client_api_allowlist::add(IRODS_APN_GENQUERY2);
-#  endif // IRODS_ENABLE_430_COMPATIBILITY
+#  endif
 #endif // RODS_SERVER
 
 	// clang-format off
@@ -31,7 +32,7 @@ extern "C" auto plugin_factory(
 		0,
 		op,
 		"api_genquery2",
-#ifdef IRODS_ENABLE_430_COMPATIBILITY
+#if IRODS_VERSION_INTEGER < 4003001
 		[](void* _p) {
 			auto* q = static_cast<genquery2_input*>(_p);
 			if (q->query_string) { std::free(q->query_string); }
@@ -44,7 +45,7 @@ extern "C" auto plugin_factory(
 			if (q->zone)         { std::free(q->zone); }
 		},
 		irods::clearOutStruct_noop,
-#endif // IRODS_ENABLE_430_COMPATIBILITY
+#endif
 		fn_ptr
 	};
 	// clang-format on
