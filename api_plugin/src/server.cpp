@@ -9,6 +9,7 @@
 #include <irods/irods_logger.hpp>
 #include <irods/irods_rs_comm_query.hpp>
 #include <irods/irods_server_properties.hpp>
+#include <irods/irods_version.h>
 #include <irods/procApiRequest.h>
 #include <irods/rodsConnect.h>
 #include <irods/rodsDef.h>
@@ -103,12 +104,12 @@ namespace
 
 			{
 				// Get the database type string from server_config.json.
-#ifdef IRODS_ENABLE_430_COMPATIBILITY
+#if IRODS_VERSION_INTEGER < 4003001
 				const auto& config = irods::server_properties::instance().map();
 #else
 				const auto handle = irods::server_properties::instance().map();
 				const auto& config = handle.get_json();
-#endif // IRODS_ENABLE_430_COMPATIBILITY
+#endif
 				const auto& db = config.at(json::json_pointer{"/plugin_configuration/database"});
 				opts.database = std::begin(db).key();
 			}

@@ -90,7 +90,7 @@ int main(int _argc, char* _argv[]) // NOLINT(modernize-use-trailing-return-type)
 
 		irods::experimental::client_connection conn;
 		char* sql{};
-		irods::at_scope_exit_unsafe free_sql{[&sql] {
+		irods::at_scope_exit free_sql{[&sql] {
 			if (sql) {
 				std::free(sql);
 			}
