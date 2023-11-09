@@ -3,7 +3,6 @@
 
     #include <fmt/format.h>
 
-    #include <charconv>
     #include <cstdint>
     #include <string>
 %}
@@ -41,17 +40,27 @@
 <ss_string_literal>{
     "''"               { string_literal += '\''; }
     \\x[0-9A-Fa-f]{2}  {
-                            std::uint8_t value;
-                            const auto err = std::from_chars(YYText() + 2, YYText() + 4, value, 16);
+                            try {
+                                // The buffer needs to hold 2 characters and a null terminator. The first 2 characters
+                                // are being skipped because \x is thrown away (hence, YYText() + 2).
+                                constexpr auto num_chars = 2;
+                                constexpr auto buffer_len = num_chars + 1;
+                                char buffer[buffer_len]{};
+                                std::memcpy(buffer, YYText() + 2, num_chars);
 
-                            if (err.ec == std::errc::invalid_argument) {
+                                // Given that this is a base-16 value with 2 digits, its maximum value is \xFF, or 255.
+                                // The maximum value of std::uint8_t is UINT8_MAX, or 255. The value is guaranteed to
+                                // fit into the type despite a loss in precision (unsigned long -> std::uint8_t).
+                                const std::uint8_t value = std::stoul(buffer, nullptr, 16);
+
+                                string_literal.push_back(value);
+                            }
+                            catch (const std::invalid_argument&) {
                                 throw yy::parser::syntax_error{loc, fmt::format("invalid hex value: [{}]", YYText())};
                             }
-                            else if (err.ec == std::errc::result_out_of_range) {
+                            catch (const std::out_of_range&) {
                                 throw yy::parser::syntax_error{loc, fmt::format("hex value cannot be represented: [{}]", YYText())};
                             }
-
-                            string_literal.push_back(value);
                        }
     '                  { BEGIN(INITIAL); return yy::parser::make_STRING_LITERAL(string_literal, loc); }
     .                  { string_literal += YYText(); }
