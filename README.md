@@ -79,8 +79,8 @@ In order to use the microservices, you'll need to enable the Rule Engine Plugin.
 In your server_config.json file, insert the following inside of the rule_engines stanza:
 ```json
 {
-    "instance_name": "irods_rule_engine-genquery2-instance",
-    "plugin_name": "irods_rule_engine-genquery2",
+    "instance_name": "irods_rule_engine_plugin-genquery2-instance",
+    "plugin_name": "irods_rule_engine_plugin-genquery2",
     "plugin_specific_configuration": {}
 }
 ```
@@ -94,7 +94,7 @@ genquery2_test_rule()
     # Execute a query. The results are stored in the Rule Engine Plugin.
     genquery2_execute(*handle, "select COLL_NAME, DATA_NAME order by DATA_NAME desc limit 1");
 
-    # Iterate over the resutls.
+    # Iterate over the results.
     while (errorcode(genquery2_next_row(*handle)) == 0) {
         genquery2_column(*handle, '0', *coll_name); # Copy the COLL_NAME into *coll_name.
         genquery2_column(*handle, '1', *data_name); # Copy the DATA_NAME into *data_name.
