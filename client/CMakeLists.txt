@@ -16,15 +16,14 @@ target_include_directories(
   $<BUILD_INTERFACE:${CMAKE_IRODS_PLUGIN_SOURCE_DIR}/api_plugin/include>
   $<BUILD_INTERFACE:${CMAKE_IRODS_PLUGIN_SOURCE_DIR}/parser/include>
   ${IRODS_INCLUDE_DIRS}
-  ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/include)
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/include)
 
 target_link_libraries(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
   irods_client
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+  fmt::fmt)
 
 add_dependencies(${IRODS_EXECUTABLE_NAME} irods_genquery2_client)
 

@@ -18,7 +18,6 @@ target_include_directories(
   $<BUILD_INTERFACE:${CMAKE_IRODS_PLUGIN_SOURCE_DIR}/api_plugin/include>
   ${IRODS_INCLUDE_DIRS}
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/include
   ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
 
 target_link_libraries(
@@ -26,9 +25,9 @@ target_link_libraries(
   PRIVATE
   irods_server
   nlohmann_json::nlohmann_json
+  fmt::fmt
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
   ${CMAKE_DL_LIBS})
 
 install(

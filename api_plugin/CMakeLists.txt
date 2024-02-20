@@ -30,7 +30,6 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
     $<BUILD_INTERFACE:${CMAKE_IRODS_PLUGIN_SOURCE_DIR}/parser/include>
     ${IRODS_INCLUDE_DIRS}
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
     ${IRODS_EXTERNALS_FULLPATH_NANODBC}/include
     ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
   
@@ -40,7 +39,7 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
     irods_plugin_dependencies
     irods_common
     irods_${IRODS_MODULE_VARIANT}
-    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
+    fmt::fmt
     ${IRODS_EXTERNALS_FULLPATH_NANODBC}/lib/libnanodbc.so)
 
   add_dependencies(${IRODS_MODULE_NAME} irods_genquery2_parser)
@@ -83,7 +82,6 @@ install(
 #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #  ${IRODS_INCLUDE_DIRS}
 #  #${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-#  #${IRODS_EXTERNALS_FULLPATH_FMT}/include
 #  #${IRODS_EXTERNALS_FULLPATH_NANODBC}/include
 #  #${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
 #  )
@@ -91,4 +89,5 @@ install(
 #target_link_libraries(
 #  ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
 #  PRIVATE
-#  irods_server)
+#  irods_server
+#  fmt::fmt)
