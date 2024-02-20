@@ -36,10 +36,10 @@ target_include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-  ${IRODS_EXTERNALS_FULLPATH_FMT}/include
   ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
 
 target_link_libraries(
   ${IRODS_PARSER_NAME}
   PUBLIC
-  nlohmann_json::nlohmann_json)
+  nlohmann_json::nlohmann_json
+  fmt::fmt)
