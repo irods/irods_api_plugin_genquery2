@@ -35,11 +35,11 @@ target_include_directories(
   PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-  ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/include)
 
 target_link_libraries(
   ${IRODS_PARSER_NAME}
   PUBLIC
+  irods_common
   nlohmann_json::nlohmann_json
   fmt::fmt)
