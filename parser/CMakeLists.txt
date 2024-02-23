@@ -40,6 +40,18 @@ target_include_directories(
 target_link_libraries(
   ${IRODS_PARSER_NAME}
   PUBLIC
-  irods_common
-  nlohmann_json::nlohmann_json
-  fmt::fmt)
+  nlohmann_json::nlohmann_json)
+
+if (${IRODS_VERSION} VERSION_GREATER "4.3.1")
+  target_link_libraries(
+    ${IRODS_PARSER_NAME}
+    PRIVATE
+    irods_common
+    fmt::fmt)
+else()
+  target_include_directories(
+    ${IRODS_PARSER_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+    ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
+endif()
