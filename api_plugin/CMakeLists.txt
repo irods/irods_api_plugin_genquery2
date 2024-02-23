@@ -38,8 +38,25 @@ foreach (IRODS_MODULE_VARIANT IN ITEMS client server)
     irods_plugin_dependencies
     irods_common
     irods_${IRODS_MODULE_VARIANT}
-    fmt::fmt
     ${IRODS_EXTERNALS_FULLPATH_NANODBC}/lib/libnanodbc.so)
+
+  if (${IRODS_VERSION} VERSION_GREATER "4.3.1")
+    target_link_libraries(
+      ${IRODS_MODULE_NAME}
+      PRIVATE
+      fmt::fmt)
+  else()
+    target_include_directories(
+      ${IRODS_MODULE_NAME}
+      PRIVATE
+      ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+      ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
+
+    target_link_libraries(
+      ${IRODS_MODULE_NAME}
+      PRIVATE
+      ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+  endif()
 
   add_dependencies(${IRODS_MODULE_NAME} irods_genquery2_parser)
 
@@ -63,8 +80,8 @@ target_link_objects(
 install(
   FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/include/irods/plugins/api/genquery2_common.h"
-  #"${CMAKE_CURRENT_SOURCE_DIR}/include/irods/plugins/api/rc_genquery2.h"
-  #"${CMAKE_CURRENT_SOURCE_DIR}/include/irods/plugins/api/rs_genquery2.hpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/include/irods/plugins/api/rc_genquery2.h"
+# "${CMAKE_CURRENT_SOURCE_DIR}/include/irods/plugins/api/rs_genquery2.hpp"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/irods/plugins/api")
 
 #set(IRODS_PLUGIN_INVOCATION_FUNCTIONS irods_genquery2_invocation_functions)
@@ -76,16 +93,32 @@ install(
 #  ${CMAKE_CURRENT_SOURCE_DIR}/src/rs_genquery2.cpp)
 #
 #target_include_directories(
-#  ${IRODS_MODULE_NAME}
+#  ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
 #  PRIVATE
 #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #  ${IRODS_INCLUDE_DIRS}
 #  #${IRODS_EXTERNALS_FULLPATH_BOOST}/include
 #  #${IRODS_EXTERNALS_FULLPATH_NANODBC}/include)
-#  )
 #
 #target_link_libraries(
 #  ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
 #  PRIVATE
-#  irods_server
-#  fmt::fmt)
+#  irods_server)
+#
+#if (${IRODS_VERSION} VERSION_GREATER "4.3.1")
+#  target_link_libraries(
+#    ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
+#    PRIVATE
+#    fmt::fmt)
+#else()
+#  target_include_directories(
+#    ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
+#    PRIVATE
+#    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+#    ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
+#
+#  target_link_libraries(
+#    ${IRODS_PLUGIN_INVOCATION_FUNCTIONS}
+#    PRIVATE
+#    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+#endif()
