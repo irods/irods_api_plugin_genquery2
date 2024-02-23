@@ -24,10 +24,27 @@ target_link_libraries(
   PRIVATE
   irods_server
   nlohmann_json::nlohmann_json
-  fmt::fmt
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
   ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
   ${CMAKE_DL_LIBS})
+
+if (${IRODS_VERSION} VERSION_GREATER "4.3.1")
+  target_link_libraries(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    fmt::fmt)
+else()
+  target_include_directories(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+    ${IRODS_EXTERNALS_FULLPATH_SPDLOG}/include)
+
+  target_link_libraries(
+    ${IRODS_RULE_ENGINE_PLUGIN_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+endif()
 
 install(
   TARGETS ${IRODS_RULE_ENGINE_PLUGIN_NAME}
