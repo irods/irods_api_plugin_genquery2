@@ -22,8 +22,24 @@ target_link_libraries(
   ${IRODS_EXECUTABLE_NAME}
   PRIVATE
   irods_client
-  ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so
-  fmt::fmt)
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_program_options.so)
+
+if (${IRODS_VERSION} VERSION_GREATER "4.3.1")
+  target_link_libraries(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+    fmt::fmt)
+else()
+  target_include_directories(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/include)
+
+  target_link_libraries(
+    ${IRODS_EXECUTABLE_NAME}
+    PRIVATE
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so)
+endif()
 
 add_dependencies(${IRODS_EXECUTABLE_NAME} irods_genquery2_client)
 
