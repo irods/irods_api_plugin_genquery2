@@ -1,3 +1,7 @@
+Note: This repository has been deprecated and archived.
+
+----
+
 # iRODS GenQuery2 Parser
 
 **IMPORTANT: iRODS 4.3.2 has built-in support for GenQuery2. DO NOT install packages or binaries produced by this project on 4.3.2+ servers.**
